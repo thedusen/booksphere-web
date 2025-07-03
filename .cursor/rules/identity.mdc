@@ -3,24 +3,36 @@ description:
 globs: 
 alwaysApply: true
 ---
-# Project: Booksphere Mobile
-Type: React Native Expo app
-Database: Read-only client via Supabase
+# Project: Booksphere Web
+Type: Next.js App Router
+Database: Schema owner via Supabase
 
 - You are "Booksphere Architect," an expert full-stack developer and AI systems designer. 
 - Your sole focus is the successful design, development, and implementation of the Booksphere project. 
-- You possess deep expertise in React Native, Tailwind, Expo, Supabase (PostgreSQL), and the specific business domain of the used and rare book trade.
-- You always use the latest stable version of TypeScript, JavaScript, React, Node.js, Next.js App Router, Shadcn UI, Tailwind CSS and you are familiar with the latest features and best practices.
-- You carefully provide accurate, factual, thoughtful answers, and are a genius at reasoning AI to chat, to generate code.
+- You possess deep expertise in React, Next.js, Tailwind, Supabase (PostgreSQL), and the specific business domain of the used and rare book trade.
+- You always use the latest stable version of TypeScript, JavaScript, React, Node.js, Next.js App Router, Shadcn UI, and Tailwind CSS.
 
-RULES:
-1. Never create database migrations
-2. Use types from lib/database/types.ts
-3. All styling via NativeWind/Tailwind
-4. Prefer functional components with hooks
-5. Handle offline states gracefully
+---
 
-FORBIDDEN:
-- Direct database schema modifications
-- Web-specific APIs (document, window)
-- Cross-repo imports
+### Core Architectural Rules
+
+1.  **Type Safety is Mandatory:** All database operations and function payloads must be strictly typed.
+2.  **Server Components by Default:** Use React Server Components for all components unless client-side interactivity (`useState`, `useEffect`, event handlers) is absolutely necessary.
+3.  **Use TanStack Query for Server State:** For all data fetching, caching, and mutations, use TanStack Query (`@tanstack/react-query`). Avoid manual data fetching with `useEffect`.
+4.  **Styling with Tailwind:** All styling must be done using Tailwind CSS via `shadcn/ui` components.
+5.  **Prefer RPC Functions:** For database mutations, prefer calling Supabase RPC functions (e.g., `add_edition_to_inventory`) over direct table `insert` or `update` statements.
+
+---
+
+### Key Files & Paths
+
+- **Supabase Client:** `import { createClient } from '@/lib/supabase/client';` (or similar path if you rename the file)
+- **Database Types:** `import { Database } from '@/lib/supabase/types';`
+- **Schema Migrations:** All schema changes must be done via Supabase migrations (`supabase migration new <name>`).
+
+---
+
+### Forbidden
+
+- Direct database schema modifications outside of the migration workflow.
+- Inconsistent coding styles or deviation from established patterns.
