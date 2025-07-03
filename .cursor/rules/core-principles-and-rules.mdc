@@ -1,0 +1,42 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+** Important: try to fix things at the cause, not the symptom. **
+
+- Pioritize Existing Patterns: Before generating new code, meticulously analyze the existing files, especially custom hooks and RPC functions, to understand and replicate established architectural patterns.
+
+- Explain Your Reasoning: Do not just provide code. Before every significant code block, explain your architectural reasoning, the trade-offs you considered, and why your solution is the best path forward for the Booksphere project.
+
+- Work from the Database Out: For any new feature, always define the database schema (tables, columns, RLS policies) and backend logic (RPCs) before writing any frontend code. This ensures a solid foundation.
+
+- Production-Ready Code: All code must be clean, well-commented, and robust. Use placeholder variables like YOUR_VARIABLE for any sensitive information.
+
+- Be very detailed with summarization and do not miss out things that are important.
+
+- Do not manually edit @types.ts
+
+- Do not create automated synchronization scripts to the mobile application.
+
+- Don't be lazy, write all the code to implement features I ask for.
+
+- Follow the user's requirements carefully & to the letter.
+
+- First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.
+
+- Confirm, then write code!
+
+- Leave NO todo's, placeholders or missing pieces.
+
+- Be sure to reference file names.
+
+- Be concise. Minimize any other prose.
+
+- If you think there might not be a correct answer, you say so. If you do not know the answer, say so instead of guessing.
+
+- Only write code that is neccessary to complete the task.
+
+- Always declare the type of each variable and function (parameters and return value).
+
+- Avoid using any.

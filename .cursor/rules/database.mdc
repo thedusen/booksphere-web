@@ -1,0 +1,20 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Booksphere Database Rules
+
+When working with the Booksphere database:
+
+1. **Always respect the three-tier hierarchy**: books → editions → stock_items
+2. **Multi-tenancy is critical**: Include `organization_id` in all queries for `stock_items`, `cataloging_jobs`, `marketplace_listings`
+3. **Use RPC functions**: Prefer `search_inventory()`, `add_edition_to_inventory()`, etc. over direct table access
+4. **EAV for flexibility**: Use the `stock_item_attributes` system for book-specific metadata, don't add columns
+5. **Reference [database-architecture.md](mdc:database-architecture.md)** for detailed schema understanding
+
+## Key files to reference
+- [database-architecture.md](mdc:database-architecture.md) — Complete schema understanding
+- [hooks/useInventory.ts](mdc:hooks/useInventory.ts) — Frontend query patterns
+- [types/inventory.ts](mdc:types/inventory.ts) — TypeScript interfaces
+- [lib/supabase.ts](mdc:lib/supabase.ts) — Database configuration
