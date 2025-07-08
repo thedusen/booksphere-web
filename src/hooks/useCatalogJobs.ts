@@ -50,7 +50,6 @@ export const useCatalogJobs = ({ organizationId, client }: CatalogJobsParams) =>
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'cataloging_jobs', filter: `organization_id=eq.${organizationId}` },
                 (payload) => {
-                    console.log('Real-time change received!', payload);
                     queryClient.invalidateQueries({ queryKey });
                 }
             )

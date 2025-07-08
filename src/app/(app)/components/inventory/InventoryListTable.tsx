@@ -48,22 +48,14 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
         setExpandedRows((prev) => ({ ...prev, [editionId]: !prev[editionId] }));
     }
 
-    function handleEdit(editionId: string): void {
-        console.log("Edit", editionId);
-    }
+    function handleEdit(editionId: string): void {}
     function handleDeleteClick(edition: GroupedEditionWithDate): void {
         setItemToDelete(edition);
     }
-    function handleManagePhotos(editionId: string): void {
-        console.log("Manage Photos", editionId);
-    }
-    function handleListOnMarketplace(editionId: string): void {
-        console.log("List on Marketplace", editionId);
-    }
+    function handleManagePhotos(editionId: string): void {}
+    function handleListOnMarketplace(editionId: string): void {}
     function handleDeleteConfirm(): void {
-        if (itemToDelete) {
-            console.log(`// TODO: Call Supabase RPC to delete edition_id: ${itemToDelete.edition_id}`);
-        }
+        // TODO: Call Supabase RPC to delete edition_id: itemToDelete.edition_id
         setItemToDelete(null);
     }
 
