@@ -26,25 +26,31 @@ export interface StockItemAttribute {
   category: string;
 }
 
+export interface EditionStockItem {
+  stock_item_id: string;
+  sku: string | null;
+  selling_price_amount: number | null;
+  location_in_store_text: string | null;
+  condition_name: string;
+  condition_notes: string | null;
+  is_active_for_sale: boolean;
+  date_added_to_stock: string;
+}
+
 export interface GroupedEdition {
   edition_id: string;
+  title: string;
   book_title: string;
   authors: string;
+  primary_author: string;
   isbn13: string | null;
   isbn10: string | null;
   publisher_name: string;
   published_date: string;
   cover_image_url: string | null;
-  stock_items: Array<{
-    stock_item_id: string;
-    sku: string | null;
-    selling_price_amount: number | null;
-    location_in_store_text: string | null;
-    condition_name: string;
-    condition_notes: string | null;
-    is_active_for_sale: boolean;
-    date_added_to_stock: string;
-  }>;
+  total_copies: number;
+  price_range: { min: number; max: number };
+  stock_items: EditionStockItem[];
 }
 
 export type FilterType = "All" | "Available" | "Listed on Amazon" | "Listed on eBay" | "Needs Photos" | "Flagged" | "Low Stock";

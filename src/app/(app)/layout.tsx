@@ -2,8 +2,9 @@
 import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { OrganizationProvider } from "@/hooks/useOrganization";
-import Sidebar from "./components/layout/Sidebar"; // Corrected relative path
+import Sidebar from "./components/layout/Sidebar";
 import { InventoryStateProvider } from "./inventory/InventoryStateProvider";
+import AppShell from "./AppShell";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(() => new QueryClient());
@@ -12,12 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
             <OrganizationProvider>
                 <InventoryStateProvider>
-                    <div className="flex min-h-screen">
-                        <Sidebar />
-                        <main className="flex-1 bg-white p-8 overflow-auto">
-                            {children}
-                        </main>
-                    </div>
+                    <AppShell>{children}</AppShell>
                 </InventoryStateProvider>
             </OrganizationProvider>
         </QueryClientProvider>

@@ -1,14 +1,35 @@
 // hooks/useFlagging.ts
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/context/AuthContext';
-import type { 
-  CreateFlagRequest, 
-  DataQualityFlag, 
-  FlagType, 
-  FlagCategory, 
-  FlagPriority 
-} from '@booksphere/shared';
+import { useAuth } from '../context/AuthContext';
+
+// Placeholder types for missing @booksphere/shared
+export type FlagReason = 'INACCURATE' | 'INAPPROPRIATE' | 'OTHER';
+export interface Flag {
+  id: string;
+  reason: FlagReason;
+  message?: string;
+  created_at: string;
+  user_id: string;
+}
+export type FlagType = 'DATA_QUALITY' | 'CONTENT' | 'OTHER';
+export type FlagCategory = 'MINOR' | 'MAJOR' | 'CRITICAL';
+export type FlagPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+export interface DataQualityFlag {
+  id: string;
+  type: FlagType;
+  category: FlagCategory;
+  priority: FlagPriority;
+  message?: string;
+  created_at: string;
+  user_id: string;
+}
+export interface CreateFlagRequest {
+  type: FlagType;
+  category: FlagCategory;
+  priority: FlagPriority;
+  message?: string;
+}
 
 export interface CreateFlagParams {
   table_name: string;
@@ -40,7 +61,7 @@ export const useFlagging = () => {
       }
 
       // Set defaults based on the provided information
-      const flagData: CreateFlagRequest = {
+      const flagData = {
         table_name: params.table_name,
         record_id: params.record_id,
         column_name: params.column_name,

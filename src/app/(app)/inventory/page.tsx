@@ -1,77 +1,120 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useMemo, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Filter } from "lucide-react";
 import { InventoryListTable } from "../components/inventory/InventoryListTable";
-import { useInventory } from "@/hooks/useInventory";
+import { useInventory, type GroupedEditionWithDate } from "@/hooks/useInventory";
 import { useDebounce } from "@/hooks/useDebounce";
 import { supabase } from "@/lib/supabase";
-import type { FilterType } from "@/lib/types/inventory";
 import { useOrganization } from "@/hooks/useOrganization";
 import { InventoryDashboardHeader } from "../components/inventory/InventoryDashboardHeader";
 import { EmptyState } from "../components/inventory/EmptyState";
 import { useInventorySummaryMetrics } from "@/hooks/useInventory";
 import { AdvancedFilterModal, AdvancedFilters } from "../components/inventory/AdvancedFilterModal";
 import { InventorySortDropdown } from "../components/inventory/InventorySortDropdown";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useInventoryState } from "./InventoryStateProvider";
+import type { UseInfiniteQueryResult, InfiniteData } from '@tanstack/react-query';
 
 export default function InventoryPage() {
     const {
         searchQuery, setSearchQuery,
         sortBy, setSortBy,
-        filterType,
-        filters, setFilters
+        filters, setFilters,
+        isFilterModalOpen, setFilterModalOpen,
+        scrollContainerRef
     } = useInventoryState();
-    const { organizationId, loading: orgLoading, error: orgError } = useOrganization();
-    const [showAdvancedFilterModal, setShowAdvancedFilterModal] = useState<boolean>(false);
 
-    // Debounce search input
+    const { organizationId, loading: orgLoading, error: orgError } = useOrganization();
+
     const debouncedSearch = useDebounce(searchQuery, 300);
 
-    // Fetch inventory data only if organizationId is available
-    const {
-        data,
-        isLoading,
-        error,
-        fetchNextPage,
-        hasNextPage,
-        isFetchingNextPage,
-    } = useInventory({
+    // Memoize and flatten filters for queryKey stability
+    const memoizedFilters = useMemo(() => ({
+        conditions: filters.conditions.join(','),
+        publishers: filters.publishers.join(','),
+        attributes: filters.attributes.join(',')
+    }), [filters.conditions, filters.publishers, filters.attributes]);
+
+    const inventoryQuery: UseInfiniteQueryResult<InfiniteData<GroupedEditionWithDate[], unknown>, Error> = useInventory({
         searchQuery: debouncedSearch,
-        filterType,
-        organizationId: organizationId || "", // useInventory expects a string
+        filterType: "All",
+        organizationId: organizationId || "",
         client: supabase,
         sortBy,
-        filters,
+        filters: memoizedFilters,
     });
 
-    // Fetch summary metrics
+    const inventoryData = inventoryQuery.data?.pages?.flat() ?? [];
+    const isLoading = inventoryQuery.isLoading;
+    const error = inventoryQuery.error;
+    const fetchNextPage = inventoryQuery.fetchNextPage;
+    const hasNextPage = inventoryQuery.hasNextPage;
+    const isFetchingNextPage = inventoryQuery.isFetchingNextPage;
+
     const {
         data: summaryMetrics,
         isLoading: summaryLoading,
     } = useInventorySummaryMetrics({
         searchQuery: debouncedSearch,
-        filterType,
+        filterType: "All",
         organizationId: organizationId || "",
         client: supabase,
         sortBy,
-        filters,
+        filters: memoizedFilters,
     });
 
-    // Flatten paginated data
-    const inventoryData = data?.pages.flat() ?? [];
-
-    // Advanced filter modal handlers
     const handleApplyAdvancedFilters = (newFilters: AdvancedFilters) => {
         setFilters(newFilters);
-        setShowAdvancedFilterModal(false);
+        setFilterModalOpen(false);
     };
 
-    // Mock publisher options for now
-    const mockPublisherOptions: string[] = ["Penguin", "HarperCollins", "Random House", "Simon & Schuster"];
+    // Save and restore scroll position on the scroll container, with debug logging and scroll event
+    useEffect(() => {
+        const scrollableElement = scrollContainerRef.current;
+        if (!scrollableElement) {
+            return;
+        }
+
+        // Restore scroll position
+        const scrollPosition = sessionStorage.getItem('inventoryScrollPosition');
+        if (scrollPosition) {
+            let attempts = 0;
+            const tryScroll = () => {
+                if (scrollableElement.scrollHeight > parseInt(scrollPosition, 10) || attempts > 30) {
+                    scrollableElement.scrollTop = parseInt(scrollPosition, 10);
+                    sessionStorage.removeItem('inventoryScrollPosition');
+                } else {
+                    attempts++;
+                    requestAnimationFrame(tryScroll);
+                }
+            };
+            requestAnimationFrame(tryScroll);
+        }
+
+        // Save scroll position on scroll
+        const handleScroll = () => {
+            sessionStorage.setItem('inventoryScrollPosition', scrollableElement.scrollTop.toString());
+        };
+        scrollableElement.addEventListener('scroll', handleScroll);
+
+        // Clean up
+        return () => {
+            scrollableElement.removeEventListener('scroll', handleScroll);
+        };
+    }, [inventoryData, scrollContainerRef]);
+
+    // Highlight last-viewed edition
+    const [lastViewedEditionId, setLastViewedEditionId] = useState<string | null>(null);
+    useEffect(() => {
+        const id = sessionStorage.getItem('lastViewedEditionId');
+        if (id) {
+            setLastViewedEditionId(id);
+            sessionStorage.removeItem('lastViewedEditionId');
+        }
+    }, []);
 
     if (orgLoading) {
         return <div className="py-8 text-center">Loading organization...</div>;
@@ -83,70 +126,8 @@ export default function InventoryPage() {
         return <div className="py-8 text-center text-muted-foreground">No organization found.</div>;
     }
 
-    // Show skeleton loader while loading inventory
-    if (isLoading) {
-        return (
-            <div className="flex flex-col gap-6">
-                {/* Header Row */}
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
-                    <Button asChild>
-                        <Link href="/inventory/new">
-                            <Plus className="mr-2 h-5 w-5" />
-                            Add New Item
-                        </Link>
-                    </Button>
-                </div>
-                {/* Dashboard Header */}
-                <InventoryDashboardHeader
-                    bookCount={summaryMetrics?.book_count ?? 0}
-                    totalItemCount={summaryMetrics?.total_item_count ?? 0}
-                    totalValueInCents={summaryMetrics?.total_value_in_cents ?? 0}
-                    isLoading={summaryLoading}
-                />
-                {/* Search & Filter Row */}
-                <div className="flex items-center gap-2">
-                    <Input
-                        type="text"
-                        placeholder="Search inventory..."
-                        className="flex-1"
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                    />
-                    <Button variant="outline" size="icon" aria-label="Filter options" onClick={() => setShowAdvancedFilterModal(true)}>
-                        <Filter className="h-5 w-5" />
-                    </Button>
-                    <InventorySortDropdown
-                        activeSort={sortBy}
-                        onSortChange={setSortBy}
-                    />
-                </div>
-                {/* Advanced Filter Modal */}
-                <AdvancedFilterModal
-                    isOpen={showAdvancedFilterModal}
-                    onClose={() => setShowAdvancedFilterModal(false)}
-                    onApply={handleApplyAdvancedFilters}
-                    currentFilters={filters}
-                    publisherOptions={mockPublisherOptions}
-                />
-                {/* Skeleton Loader Rows */}
-                <div className="mt-4">
-                    {[...Array(8)].map((_, i) => (
-                        <Skeleton key={i} className="h-12 w-full mb-2" />
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
-    // Show empty state only if not loading and no data
-    if (inventoryData.length === 0) {
-        return <EmptyState searchQuery={searchQuery} />;
-    }
-
     return (
         <div className="flex flex-col gap-6">
-            {/* Header Row */}
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
                 <Button asChild>
@@ -157,7 +138,6 @@ export default function InventoryPage() {
                 </Button>
             </div>
 
-            {/* Dashboard Header */}
             <InventoryDashboardHeader
                 bookCount={summaryMetrics?.book_count ?? 0}
                 totalItemCount={summaryMetrics?.total_item_count ?? 0}
@@ -165,17 +145,17 @@ export default function InventoryPage() {
                 isLoading={summaryLoading}
             />
 
-            {/* Search & Filter Row */}
             <div className="flex items-center gap-2">
                 <Input
                     type="text"
                     placeholder="Search inventory..."
                     className="flex-1"
                     value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <Button variant="outline" size="icon" aria-label="Filter options" onClick={() => setShowAdvancedFilterModal(true)}>
-                    <Filter className="h-5 w-5" />
+                <Button variant="outline" onClick={() => setFilterModalOpen(true)}>
+                    <Filter className="mr-2 h-4 w-4" />
+                    Filter
                 </Button>
                 <InventorySortDropdown
                     activeSort={sortBy}
@@ -183,39 +163,42 @@ export default function InventoryPage() {
                 />
             </div>
 
-            {/* Advanced Filter Modal */}
             <AdvancedFilterModal
-                isOpen={showAdvancedFilterModal}
-                onClose={() => setShowAdvancedFilterModal(false)}
+                isOpen={isFilterModalOpen}
+                onClose={() => setFilterModalOpen(false)}
                 onApply={handleApplyAdvancedFilters}
                 currentFilters={filters}
-                publisherOptions={mockPublisherOptions}
+                publisherOptions={[]} // Mock options
             />
 
-            {/* Item Count */}
-            <div className="text-sm text-muted-foreground">
-                Showing {inventoryData.length} of {summaryMetrics?.book_count ?? 0} books
-            </div>
-
-            {/* Inventory Table */}
-            <InventoryListTable
-                data={inventoryData}
-                isLoading={isLoading}
-                error={error as Error | null}
-            />
-
-            {/* Load More Button */}
-            <div className="flex justify-center mt-4">
-                {hasNextPage && (
-                    <Button
-                        onClick={() => fetchNextPage()}
-                        disabled={isFetchingNextPage}
-                        variant="outline"
-                    >
-                        {isFetchingNextPage ? "Loading..." : "Load More"}
-                    </Button>
-                )}
-            </div>
+            {isLoading && inventoryData.length === 0 ? (
+                 <div className="py-8 text-center">Loading inventory...</div>
+            ) : inventoryData.length === 0 ? (
+                <EmptyState searchQuery={searchQuery} />
+            ) : (
+                <>
+                    <div className="text-sm text-muted-foreground">
+                        Showing {inventoryData.length} of {summaryMetrics?.book_count ?? 0} books
+                    </div>
+                    <InventoryListTable
+                        data={inventoryData}
+                        isLoading={isLoading}
+                        error={error as Error | null}
+                        lastViewedEditionId={lastViewedEditionId || undefined}
+                    />
+                    <div className="flex justify-center mt-4">
+                        {hasNextPage && (
+                            <Button
+                                onClick={() => fetchNextPage()}
+                                disabled={isFetchingNextPage}
+                                variant="outline"
+                            >
+                                {isFetchingNextPage ? "Loading..." : "Load More"}
+                            </Button>
+                        )}
+                    </div>
+                </>
+            )}
         </div>
     );
-} 
+}

@@ -1,9 +1,16 @@
 // packages/supabase/src/useInventory.ts
 
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, UseInfiniteQueryResult, InfiniteData } from '@tanstack/react-query';
 import type { SupabaseClient } from '@supabase/supabase-js';
 // ✅ CORRECTED: All type imports now come from the single shared package
-import type { FilterType, GroupedEdition, BookSummary, StockItemDetails, ConditionStandard } from '@/lib/types/inventory';
+import type { FilterType, GroupedEdition as BaseGroupedEdition, BookSummary, StockItemDetails, ConditionStandard } from '@/lib/types/inventory';
+import React from 'react';
+
+// Extend GroupedEdition to include max_date_added for pagination
+export interface GroupedEditionWithDate extends BaseGroupedEdition {
+  max_date_added: string;
+  edition_id: string;
+}
 
 // Define a common params interface for hooks that need the client
 interface BaseHookParams {
@@ -54,29 +61,27 @@ interface EditionDetailsParams extends BaseHookParams {
 
 const ITEMS_PER_PAGE = 20;
 
-export const useInventory = ({ 
-  searchQuery, 
-  filterType, 
-  organizationId, 
-  client,
-  sortBy = 'date_added_to_stock DESC',
-  filters = {}
-}: InventoryHookParams) => {
-  return useInfiniteQuery({
-    queryKey: ['inventory', searchQuery, filterType, organizationId, sortBy, filters],
-    queryFn: async ({ pageParam = 0 }: { pageParam?: number }) => {
+export const useInventory = (
+  params: InventoryHookParams
+): UseInfiniteQueryResult<InfiniteData<GroupedEditionWithDate[], unknown>, Error> => {
+  const { searchQuery, filterType, organizationId, client, sortBy = 'date_added_to_stock DESC', filters = {} } = params;
+  // Memoize the flattened filters for query key stability
+  const stableFilters = React.useMemo(() => JSON.stringify(filters), [filters]);
+  return useInfiniteQuery<GroupedEditionWithDate[], Error>({
+    queryKey: ['inventory', searchQuery, filterType, organizationId, sortBy, stableFilters],
+    queryFn: async ({ pageParam }) => {
+      const { last_date_added = null, last_edition_id = null } = (pageParam as { last_date_added: string | null; last_edition_id: string | null }) || {};
       const { data, error } = await client.rpc('search_inventory', {
-        org_id: organizationId,
-        search_query: searchQuery,
-        filter_type: filterType,
-        sort_by: sortBy,
-        filters: filters,
-        limit_count: ITEMS_PER_PAGE,
-        offset_count: pageParam * ITEMS_PER_PAGE,
+        p_org_id: organizationId,
+        p_search_query: searchQuery,
+        p_filter_type: filterType,
+        p_sort_by: sortBy,
+        p_filters: filters,
+        p_limit_count: ITEMS_PER_PAGE,
+        p_last_date_added: last_date_added,
+        p_last_edition_id: last_edition_id,
       });
-
       if (error) throw error;
-
       return (data || []).map((item: any) => ({
         ...item,
         total_copies: parseInt(item.total_copies),
@@ -84,17 +89,20 @@ export const useInventory = ({
           min: parseFloat(item.min_price || '0'),
           max: parseFloat(item.max_price || '0'),
         },
-      })) as GroupedEdition[];
+      })) as GroupedEditionWithDate[];
     },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage: GroupedEdition[], pages: GroupedEdition[][]) => {
-      // Corrected logic for getNextPageParam
-      if (lastPage.length < ITEMS_PER_PAGE) return undefined;
-      return pages.length;
+    initialPageParam: { last_date_added: null, last_edition_id: null },
+    getNextPageParam: (lastPage: GroupedEditionWithDate[], pages: GroupedEditionWithDate[][]) => {
+      if (!lastPage || lastPage.length < ITEMS_PER_PAGE) return undefined;
+      const lastItem = lastPage[lastPage.length - 1];
+      return {
+        last_date_added: lastItem.max_date_added,
+        last_edition_id: lastItem.edition_id,
+      };
     },
     enabled: !!organizationId && !!client,
-    staleTime: 5 * 60 * 1000, // 5 minutes - reduce redundant fetches for inventory data
-    gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache longer
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 
@@ -126,8 +134,8 @@ export const useInventorySummaryMetrics = ({
       };
     },
     enabled: !!organizationId && !!client,
-    staleTime: 3 * 60 * 1000, // 3 minutes - summary metrics don't change as frequently
-    gcTime: 8 * 60 * 1000, // 8 minutes - keep in cache
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    gcTime: 8 * 60 * 1000, // 8 minutes
   });
 };
 
@@ -202,12 +210,12 @@ export const useAttributes = ({ client }: { client: SupabaseClient }) => {
 };
 
 export const useEditionDetails = ({ editionId, organizationId, client }: EditionDetailsParams) => {
-  return useQuery<GroupedEdition>({
+  return useQuery<GroupedEditionWithDate>({
     queryKey: ['edition-details', editionId, organizationId],
     queryFn: async () => {
       const { data, error } = await client.rpc('get_edition_details', {
-        edition_id_in: editionId,
-        org_id_in: organizationId,
+        p_edition_id: editionId,
+        p_organization_id: organizationId,
       });
       if (error) throw error;
       if (!data) throw new Error("Edition not found");
@@ -218,7 +226,7 @@ export const useEditionDetails = ({ editionId, organizationId, client }: Edition
         authors: data.authors,
         isbn13: data.isbn13,
         isbn10: data.isbn10,
-      } as GroupedEdition;
+      } as GroupedEditionWithDate;
     },
     enabled: !!editionId && !!organizationId && !!client,
   });

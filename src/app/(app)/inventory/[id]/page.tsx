@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { useParams } from "next/navigation";
+import React, { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useEditionDetails } from "@/hooks/useInventory";
 import { useOrganization } from "@/hooks/useOrganization";
@@ -29,12 +29,18 @@ export default function EditionDetailPage() {
     const params = useParams();
     const { id } = params as { id: string };
     const { organizationId } = useOrganization();
+    const router = useRouter();
 
     const { data: edition, isLoading, error } = useEditionDetails({
         editionId: id,
         organizationId: organizationId || '',
         client: supabase,
     });
+
+    // Save last viewed edition id to sessionStorage on mount
+    useEffect(() => {
+        sessionStorage.setItem('lastViewedEditionId', id);
+    }, [id]);
 
     if (isLoading || !organizationId) {
         return (
@@ -62,11 +68,9 @@ export default function EditionDetailPage() {
         <div className="max-w-4xl mx-auto space-y-6">
             {/* Back to Inventory Link */}
             <div className="mb-2">
-                <Button asChild variant="outline" size="sm">
-                    <Link href="/inventory">
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        Back to Inventory
-                    </Link>
+                <Button variant="outline" size="sm" onClick={() => router.back()}>
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back to Inventory
                 </Button>
             </div>
 

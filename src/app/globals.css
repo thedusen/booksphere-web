@@ -120,3 +120,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+.animate-fade-highlight {
+  animation: fade-highlight 3s ease-out 1;
+}
+@keyframes fade-highlight {
+  0% { background-color: yellow !important; }
+  80% { background-color: yellow !important; }
+  100% { background-color: transparent; }
+}

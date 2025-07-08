@@ -4,8 +4,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-// ✅ IMPORT THE TYPE FROM THE SHARED PACKAGE
-import type { CatalogJob } from '@booksphere/shared';
+// Placeholder type for CatalogJob is at the top of the file.
+export interface CatalogJob {
+  id: string;
+  status: string;
+  created_at: string;
+  completed_at?: string;
+}
 
 interface CatalogJobsParams {
   organizationId: string;
