@@ -28,17 +28,23 @@ export interface StockItemAttribute {
 
 export interface GroupedEdition {
   edition_id: string;
-  book_id: string;
-  title: string;
-  primary_author: string;
-  cover_image_url: string | null;
+  book_title: string;
+  authors: string;
   isbn13: string | null;
   isbn10: string | null;
-  publisher_name: string | null;
-  published_date: string | null;
-  stock_items: StockItem[];
-  total_copies: number;
-  price_range: { min: number; max: number };
+  publisher_name: string;
+  published_date: string;
+  cover_image_url: string | null;
+  stock_items: Array<{
+    stock_item_id: string;
+    sku: string | null;
+    selling_price_amount: number | null;
+    location_in_store_text: string | null;
+    condition_name: string;
+    condition_notes: string | null;
+    is_active_for_sale: boolean;
+    date_added_to_stock: string;
+  }>;
 }
 
 export type FilterType = "All" | "Available" | "Listed on Amazon" | "Listed on eBay" | "Needs Photos" | "Flagged" | "Low Stock";

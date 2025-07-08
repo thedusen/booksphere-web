@@ -48,6 +48,10 @@ export interface AttributeCategory {
   sort_order: number | null;
 }
 
+interface EditionDetailsParams extends BaseHookParams {
+  editionId: string;
+}
+
 const ITEMS_PER_PAGE = 20;
 
 export const useInventory = ({ 
@@ -194,6 +198,29 @@ export const useAttributes = ({ client }: { client: SupabaseClient }) => {
       };
     },
     staleTime: 60 * 60 * 1000,
+  });
+};
+
+export const useEditionDetails = ({ editionId, organizationId, client }: EditionDetailsParams) => {
+  return useQuery<GroupedEdition>({
+    queryKey: ['edition-details', editionId, organizationId],
+    queryFn: async () => {
+      const { data, error } = await client.rpc('get_edition_details', {
+        edition_id_in: editionId,
+        org_id_in: organizationId,
+      });
+      if (error) throw error;
+      if (!data) throw new Error("Edition not found");
+      // Map book_title from backend to title in GroupedEdition for canonical display
+      return {
+        ...data,
+        title: data.book_title, // always use book title as canonical title
+        authors: data.authors,
+        isbn13: data.isbn13,
+        isbn10: data.isbn10,
+      } as GroupedEdition;
+    },
+    enabled: !!editionId && !!organizationId && !!client,
   });
 };
 
