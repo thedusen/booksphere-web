@@ -1,0 +1,34 @@
+{
+    "theme": "GitHub",
+    "mcpServers": {
+        "Supabase-Booksphere": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@supabase/mcp-server-supabase@latest",
+                "--project-ref=oteqbwupxzjjvqbkumlt"
+            ],
+            "env": {
+                "SUPABASE_ACCESS_TOKEN": "sbp_d14d54479d46c238b892844edfe76d8b1c850d66"
+            },
+            "working_directory": null,
+            "start_on_launch": true
+        },
+        "memory-bank": {
+            "command": "npx",
+            "args": ["-y", "@alioshr/memory-bank-mcp"]
+        },
+        "sequential-thinking": {
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+        },
+        "filesystem": {
+            "command": "npx", 
+            "args": ["-y", "@modelcontextprotocol/server-filesystem", "--serve", "."]
+        },
+        "context7": {
+            "command": "npx", 
+            "args": ["-y", "@upstash/context7-mcp"]
+        }
+    }
+}

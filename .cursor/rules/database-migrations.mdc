@@ -1,0 +1,7 @@
+---
+description: how to manage any supabase migration tasks
+globs:
+alwaysApply: false
+---
+
+Always use the Supabase MCP (Management Control Plane) to create and apply database migrations. After generating a migration, ensure the resulting migration file is added to the project's supabase/migrations directory for version control and reproducibility. Never make schema changes outside of this workflow.

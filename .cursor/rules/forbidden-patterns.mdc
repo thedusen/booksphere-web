@@ -1,0 +1,10 @@
+---
+description: A list of anti-patterns that must be avoided.
+globs: ["**/*"]
+alwaysApply: true
+---
+**Forbidden Actions:**
+- **DO NOT** add columns like `is_signed` or `edition_number` to the `stock_items` table. Use the EAV pattern.
+- **DO NOT** use `useEffect` for data fetching. Use TanStack Query hooks.
+- **DO NOT** write database queries that are not scoped by `organization_id` where required.
+- **DO NOT** modify the Supabase-generated `types.ts` file directly. All changes must come from a database migration.

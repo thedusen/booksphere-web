@@ -1,0 +1,10 @@
+---
+description: tore and retrieve project context across sessions
+alwaysApply: false
+---
+Use Memory Bank for project continuity:
+- Store architectural decisions and patterns
+- Save user preferences and coding standards
+- Maintain context for multi-session projects
+- Record complex configurations
+- Read existing memory before starting new work

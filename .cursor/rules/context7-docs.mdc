@@ -1,0 +1,9 @@
+---
+description: Fetch up-to-date library documentation and code examples
+alwaysApply: false
+---
+When working with specific libraries/frameworks, use Context7 to get current docs:
+- Always resolve library ID first, then get docs
+- Use for React, Next.js, Vue, Express, or any mentioned library
+- Prevents outdated APIs and hallucinated methods
+- Automatically engage when user says "use context7"

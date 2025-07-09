@@ -1,0 +1,11 @@
+---
+description: Database operations, schema design, and backend development with Supabase
+alwaysApply: false
+---
+For any database work, always check Supabase schema first:
+- List existing tables before creating new ones
+- Check current schema before writing migrations
+- Generate TypeScript types after schema changes
+- Create development branches for testing
+- Verify RLS policies for security
+- Use execute_sql for queries, apply_migration for DDL

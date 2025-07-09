@@ -1,0 +1,11 @@
+---
+description: A cheat sheet for the Booksphere database, especially the EAV pattern.
+globs: ["**/*.{ts,tsx,sql}"]
+alwaysApply: true
+---
+**Database Cheat Sheet:**
+- **Hierarchy:** `books` (work) → `editions` (publication) → `stock_items` (physical copy).
+- **Key RPCs:** `search_inventory()`, `get_edition_details()`, `add_stock_item_attribute()`.
+- **EAV Logic:** To add an attribute like "Signed" to a stock item:
+    - Query the `attribute_types` table to find the UUID for the "Signed" attribute.
+    - Call the `add_stock_item_attribute` RPC, passing the `stock_item_id`, the attribute type UUID, and setting `boolean_value = true`.
