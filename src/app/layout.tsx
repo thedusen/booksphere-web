@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { StagewiseToolbar } from '@stagewise/toolbar-next';
 import mainPlugin from '@stagewise-plugins/react';
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <StagewiseToolbar config={{ plugins: [mainPlugin] }} />
+        <Toaster />
         {children}
       </body>
     </html>

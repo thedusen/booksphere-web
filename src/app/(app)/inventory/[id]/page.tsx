@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useEditionDetails } from "@/hooks/useInventory";
@@ -9,20 +9,93 @@ import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Edit, Trash2, ChevronLeft } from "lucide-react";
-import type { GroupedEdition } from "@/lib/types/inventory";
-import Link from "next/link";
+import { AlertTriangle, Trash2, ChevronLeft } from "lucide-react";
+import { FlaggingTrigger, FlaggingButton } from "@/components/flagging";
+import type { EditionStockItem } from "@/lib/types/inventory";
 
-// Helper component for displaying rows of data
-const DetailRow = ({ label, value }: { label: string; value: string | null | undefined }) => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-1 py-3">
-        <dt className="font-medium text-muted-foreground">{label}</dt>
-        <dd className="md:col-span-2 text-foreground">{value || "—"}</dd>
+// REVIEWER FIX: The props interface for the memoized card.
+// It uses the actual `EditionStockItem` type for correctness.
+interface StockItemCardProps {
+  item: EditionStockItem;
+  editionTitle: string;
+}
+
+/**
+ * Memoized component for individual stock items to prevent performance issues
+ * with flagging trigger re-registration.
+ */
+const StockItemCard = React.memo(function StockItemCard({ item, editionTitle }: StockItemCardProps) {
+  // This context data is now stable and won't cause re-registration on every render
+  const stockItemContextData = useMemo(() => ({
+    bookTitle: editionTitle,
+    sku: item.sku || "N/A",
+    condition: item.condition_name,
+    price: item.selling_price_amount,
+  }), [editionTitle, item.sku, item.condition_name, item.selling_price_amount]);
+
+  const displaySku = item.sku || "N/A";
+  const displayPrice = item.selling_price_amount ? item.selling_price_amount.toFixed(2) : "N/A";
+  const displayLocation = item.location_in_store_text || "N/A";
+
+  return (
+    <div className="border rounded p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="space-y-2">
+        {/* Condition field with flagging capability */}
+        <FlaggingTrigger
+          tableName="stock_items"
+          recordId={item.stock_item_id}
+          fieldName="condition_name"
+          currentValue={item.condition_name}
+          fieldLabel="Condition"
+          contextData={stockItemContextData}
+          className="inline-block rounded-sm px-1 -mx-1"
+        >
+          <div className="font-medium">Condition: {item.condition_name}</div>
+        </FlaggingTrigger>
+
+        {/* SKU field with flagging capability */}
+        <FlaggingTrigger
+          tableName="stock_items"
+          recordId={item.stock_item_id}
+          fieldName="sku"
+          currentValue={displaySku}
+          fieldLabel="SKU"
+          contextData={stockItemContextData}
+          className="inline-block rounded-sm px-1 -mx-1"
+        >
+          <div className="text-sm text-muted-foreground">SKU: {displaySku}</div>
+        </FlaggingTrigger>
+
+        {/* Location field with flagging capability */}
+        <FlaggingTrigger
+          tableName="stock_items"
+          recordId={item.stock_item_id}
+          fieldName="location_in_store_text"
+          currentValue={displayLocation}
+          fieldLabel="Location"
+          contextData={stockItemContextData}
+          className="inline-block rounded-sm px-1 -mx-1"
+        >
+          <div className="text-sm text-muted-foreground">Location: {displayLocation}</div>
+        </FlaggingTrigger>
+      </div>
+
+      {/* Price field with flagging capability */}
+      <FlaggingTrigger
+        tableName="stock_items"
+        recordId={item.stock_item_id}
+        fieldName="selling_price_amount"
+        currentValue={`$${displayPrice}`}
+        fieldLabel="Selling Price"
+        contextData={stockItemContextData}
+        className="inline-block rounded-sm px-2 -mx-2"
+      >
+        <div className="text-base font-semibold">${displayPrice}</div>
+      </FlaggingTrigger>
     </div>
-);
+  );
+});
 
 // Main Page Component
 export default function EditionDetailPage() {
@@ -41,6 +114,18 @@ export default function EditionDetailPage() {
     useEffect(() => {
         sessionStorage.setItem('lastViewedEditionId', id);
     }, [id]);
+
+    // Memoize context data for edition fields (expert recommendation)
+    const editionContextData = useMemo(() => {
+        if (!edition) return {};
+        return {
+            bookTitle: edition.book_title,
+            authors: edition.authors || "Unknown",
+            isbn13: edition.isbn13 || "N/A",
+            isbn10: edition.isbn10 || "N/A",
+            publisher: edition.publisher_name,
+        };
+    }, [edition]);
 
     if (isLoading || !organizationId) {
         return (
@@ -76,6 +161,25 @@ export default function EditionDetailPage() {
 
             {/* Hero Section */}
             <Card className="overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Edition Details</CardTitle>
+                        <CardDescription>
+                            Comprehensive information about this book edition
+                        </CardDescription>
+                    </div>
+                    {/* Record-level flagging button (UX expert recommendation) */}
+                    <FlaggingButton
+                        tableName="editions"
+                        recordId={id}
+                        currentValue={edition.book_title}
+                        fieldLabel="Edition Record"
+                        contextData={editionContextData}
+                        variant="outline"
+                        size="sm"
+                        showLabel={true}
+                    />
+                </CardHeader>
                 <div className="flex flex-col sm:flex-row">
                     <div className="flex-shrink-0">
                         {edition.cover_image_url && (
@@ -89,11 +193,58 @@ export default function EditionDetailPage() {
                         )}
                     </div>
                     <div className="p-6 flex-1">
-                        <h1 className="text-2xl font-bold tracking-tight">{edition.book_title}</h1>
-                        <p className="text-lg text-muted-foreground mt-1">{edition.authors || "—"}</p>
-                        <div className="text-sm text-muted-foreground mt-4 flex flex-col gap-1">
-                          <span>ISBN-13: {edition.isbn13 || "N/A"}</span>
-                          <span>ISBN-10: {edition.isbn10 || "N/A"}</span>
+                        {/* Book Title with flagging capability */}
+                        <FlaggingTrigger
+                            tableName="editions"
+                            recordId={id}
+                            fieldName="book_title"
+                            currentValue={edition.book_title}
+                            fieldLabel="Book Title"
+                            contextData={editionContextData}
+                            className="inline-block rounded-sm px-2 -mx-2"
+                        >
+                            <h1 className="text-2xl font-bold tracking-tight">{edition.book_title}</h1>
+                        </FlaggingTrigger>
+
+                        {/* Authors with flagging capability */}
+                        <FlaggingTrigger
+                            tableName="editions"
+                            recordId={id}
+                            fieldName="authors"
+                            currentValue={edition.authors || "Unknown"}
+                            fieldLabel="Authors"
+                            contextData={editionContextData}
+                            className="inline-block rounded-sm px-2 -mx-2"
+                        >
+                            <p className="text-lg text-muted-foreground mt-1">{edition.authors || "Unknown"}</p>
+                        </FlaggingTrigger>
+
+                        <div className="text-sm text-muted-foreground mt-4 space-y-1">
+                            {/* ISBN-13 with flagging capability */}
+                            <FlaggingTrigger
+                                tableName="editions"
+                                recordId={id}
+                                fieldName="isbn13"
+                                currentValue={edition.isbn13 || "N/A"}
+                                fieldLabel="ISBN-13"
+                                contextData={editionContextData}
+                                className="inline-block rounded-sm px-1 -mx-1"
+                            >
+                                <div>ISBN-13: {edition.isbn13 || "N/A"}</div>
+                            </FlaggingTrigger>
+
+                            {/* ISBN-10 with flagging capability */}
+                            <FlaggingTrigger
+                                tableName="editions"
+                                recordId={id}
+                                fieldName="isbn10"
+                                currentValue={edition.isbn10 || "N/A"}
+                                fieldLabel="ISBN-10"
+                                contextData={editionContextData}
+                                className="inline-block rounded-sm px-1 -mx-1"
+                            >
+                                <div>ISBN-10: {edition.isbn10 || "N/A"}</div>
+                            </FlaggingTrigger>
                         </div>
                     </div>
                 </div>
@@ -110,15 +261,14 @@ export default function EditionDetailPage() {
                 <CardContent>
                     {edition.stock_items && edition.stock_items.length > 0 ? (
                         <div className="space-y-4">
+                            {/* REVIEWER FIX: This now correctly uses the memoized component,
+                                preventing the performance bug. */}
                             {edition.stock_items.map((item) => (
-                                <div key={item.stock_item_id} className="border rounded p-4 flex flex-col md:flex-row md:items-center md:justify-between">
-                                    <div>
-                                        <div className="font-medium">Condition: {item.condition_name}</div>
-                                        <div className="text-sm text-muted-foreground">SKU: {item.sku || "N/A"}</div>
-                                        <div className="text-sm text-muted-foreground">Location: {item.location_in_store_text || "N/A"}</div>
-                                    </div>
-                                    <div className="text-base font-semibold mt-2 md:mt-0">${item.selling_price_amount ? item.selling_price_amount.toFixed(2) : "N/A"}</div>
-                                </div>
+                                <StockItemCard
+                                    key={item.stock_item_id}
+                                    item={item}
+                                    editionTitle={edition.book_title}
+                                />
                             ))}
                         </div>
                     ) : (
