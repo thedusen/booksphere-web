@@ -40,3 +40,73 @@ export interface FlagStatusUpdate {
   resolution_notes?: string;
   reviewed_by?: string;
 }
+
+/**
+ * Standardized context data interface for flagging operations
+ * Ensures consistency across all flagging trigger implementations
+ */
+export interface FlagContextData {
+  // Book/Edition Information
+  title?: string;
+  author?: string;
+  isbn?: string;
+  publisher?: string;
+  publicationDate?: string;
+  
+  // Stock Item Information  
+  condition?: string;
+  price?: number;
+  sku?: string;
+  location?: string;
+  
+  // Additional Context
+  [key: string]: unknown;
+}
+
+/**
+ * Helper function to create standardized context data
+ * Use this to ensure consistent field naming across components
+ */
+export function createFlagContextData(data: {
+  // Book/Edition fields
+  title?: string;
+  primaryAuthor?: string;
+  author?: string;
+  isbn13?: string;
+  isbn10?: string;
+  isbn?: string;
+  publisher?: string;
+  publicationDate?: string;
+  
+  // Stock item fields
+  condition?: string;
+  sellingPrice?: number;
+  price?: number;
+  sku?: string;
+  locationInStore?: string;
+  location?: string;
+  
+  // Allow additional fields
+  [key: string]: unknown;
+}): FlagContextData {
+  return {
+    title: data.title,
+    author: data.primaryAuthor || data.author,
+    isbn: data.isbn13 || data.isbn10 || data.isbn,
+    publisher: data.publisher,
+    publicationDate: data.publicationDate,
+    condition: data.condition,
+    price: data.sellingPrice || data.price,
+    sku: data.sku,
+    location: data.locationInStore || data.location,
+    
+    // Include any additional fields not covered above
+    ...Object.fromEntries(
+      Object.entries(data).filter(([key]) => 
+        !['title', 'primaryAuthor', 'author', 'isbn13', 'isbn10', 'isbn', 
+          'publisher', 'publicationDate', 'condition', 'sellingPrice', 
+          'price', 'sku', 'locationInStore', 'location'].includes(key)
+      )
+    )
+  };
+}

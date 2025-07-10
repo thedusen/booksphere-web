@@ -1,38 +1,37 @@
 "use client";
 import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { OrganizationProvider } from "@/hooks/useOrganization";
+import { FlaggingProvider } from "@/components/flagging/FlaggingProvider";
 import { InventoryStateProvider } from "./inventory/InventoryStateProvider";
-import { FlaggingProvider } from "@/components/flagging";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import AppShell from "./AppShell";
-import { Toaster } from '@/components/ui/sonner';
-import { FlaggingProvider } from '@/components/flagging/FlaggingProvider';
-
-const AppProviders: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider supabase={supabase}>{children}</AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
-};
+import { OrganizationProvider } from "@/hooks/useOrganization";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        retry: 1,
+      },
+    },
+  }));
+
   return (
-    <AppProviders>
-      <FlaggingProvider>
-        <div className="flex h-screen bg-background">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto">
-            <Header />
-            <div className="p-4 sm:p-6 lg:p-8">{children}</div>
-          </main>
-        </div>
-        <Toaster />
-      </FlaggingProvider>
-    </AppProviders>
+    <QueryClientProvider client={queryClient}>
+      <OrganizationProvider>
+        <TooltipProvider>
+          <InventoryStateProvider>
+            <FlaggingProvider>
+              <AppShell>
+                {children}
+              </AppShell>
+              <Toaster />
+            </FlaggingProvider>
+          </InventoryStateProvider>
+        </TooltipProvider>
+      </OrganizationProvider>
+    </QueryClientProvider>
   );
 }

@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
+// Set mock environment variables for Supabase
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321'
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
+
 // Add missing DOM API polyfills for jsdom
 if (typeof Element !== 'undefined') {
   // Polyfill for Radix UI hasPointerCapture compatibility

@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import * as AlertDialog from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { FlaggingTrigger } from "@/components/flagging";
+import { createFlagContextData } from '@/lib/types/flags';
 
 interface InventoryListTableProps {
     data: GroupedEditionWithDate[] | undefined;
@@ -129,13 +131,74 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
                                                 />
                                             )}
                                             <div>
-                                                <div className="font-medium leading-tight">{edition.title}</div>
-                                                <div className="text-xs text-muted-foreground">{edition.primary_author}</div>
+                                                <FlaggingTrigger
+                                                    tableName="editions"
+                                                    recordId={edition.edition_id}
+                                                    fieldName="title"
+                                                    currentValue={edition.title}
+                                                    fieldLabel="Book Title"
+                                                    contextData={{
+                                                        author: edition.primary_author,
+                                                        isbn: edition.isbn13 || edition.isbn10,
+                                                        publisher: edition.publisher_name,
+                                                        totalCopies: edition.total_copies,
+                                                    }}
+                                                    className="flaggable-field inline-block rounded-sm px-1 -mx-1"
+                                                >
+                                                    <div className="font-medium leading-tight">{edition.title}</div>
+                                                </FlaggingTrigger>
+                                                {/* Authors with flagging capability - UX Expert: High-priority field for data quality */}
+                                                <FlaggingTrigger
+                                                    tableName="editions"
+                                                    recordId={edition.edition_id}
+                                                    fieldName="primary_author"
+                                                    currentValue={edition.primary_author}
+                                                    fieldLabel="Author"
+                                                    contextData={createFlagContextData({
+                                                        title: edition.title,
+                                                        primaryAuthor: edition.primary_author || undefined,
+                                                        isbn13: edition.isbn13 || undefined,
+                                                        isbn10: edition.isbn10 || undefined,
+                                                        publisher: edition.publisher_name,
+                                                        publicationDate: edition.published_date || undefined,
+                                                    })}
+                                                    className="flaggable-field"
+                                                >
+                                                    <span className="text-muted-foreground">
+                                                        {edition.primary_author}
+                                                    </span>
+                                                </FlaggingTrigger>
                                             </div>
                                         </div>
                                     </Link>
                                 </TableCell>
-                                <TableCell>{edition.isbn13 || edition.isbn10 || "—"}</TableCell>
+                                <TableCell>
+                                    {/* ISBN with flagging capability - Business Expert: Highest priority for marketplace compliance */}
+                                    {(edition.isbn13 || edition.isbn10) ? (
+                                        <FlaggingTrigger
+                                            tableName="editions"
+                                            recordId={edition.edition_id}
+                                            fieldName={edition.isbn13 ? "isbn13" : "isbn10"}
+                                            currentValue={edition.isbn13 || edition.isbn10 || ""}
+                                            fieldLabel={edition.isbn13 ? "ISBN-13" : "ISBN-10"}
+                                            contextData={createFlagContextData({
+                                                title: edition.title,
+                                                primaryAuthor: edition.primary_author || undefined,
+                                                isbn13: edition.isbn13 || undefined,
+                                                isbn10: edition.isbn10 || undefined,
+                                                publisher: edition.publisher_name,
+                                                publicationDate: edition.published_date || undefined,
+                                            })}
+                                            className="flaggable-field"
+                                        >
+                                            <span className="font-mono text-xs">
+                                                {edition.isbn13 || edition.isbn10 || 'No ISBN'}
+                                            </span>
+                                        </FlaggingTrigger>
+                                    ) : (
+                                        "—"
+                                    )}
+                                </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
                                         <span>{edition.total_copies}</span>
@@ -163,7 +226,16 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
                                     <TableCell colSpan={columnCount} className="p-0">
                                         {edition.stock_items && edition.stock_items.length > 0 ? (
                                             edition.stock_items.map((item, i) => (
-                                                <StockItemRow key={item.stock_item_id} item={item} isLast={i === edition.stock_items.length - 1} />
+                                                <StockItemRow 
+                                                    key={item.stock_item_id} 
+                                                    item={item} 
+                                                    isLast={i === edition.stock_items.length - 1}
+                                                    bookContext={{
+                                                        editionId: edition.edition_id,
+                                                        title: edition.title,
+                                                        primaryAuthor: edition.primary_author,
+                                                    }}
+                                                />
                                             ))
                                         ) : (
                                             <div className="text-sm text-muted-foreground p-4 text-center">No individual stock items for this edition.</div>

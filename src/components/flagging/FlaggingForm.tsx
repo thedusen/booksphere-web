@@ -259,7 +259,7 @@ export function FlaggingForm({
 
         {/* Form Section */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="flagging-form">
             
             {/* Flag Type Selection */}
             <FormField
@@ -273,7 +273,7 @@ export function FlaggingForm({
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger data-testid="flag-type-select">
                         <SelectValue placeholder="Select issue type" />
                       </SelectTrigger>
                     </FormControl>
@@ -311,7 +311,7 @@ export function FlaggingForm({
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger data-testid="severity-select">
                         <SelectValue placeholder="Select severity level" />
                       </SelectTrigger>
                     </FormControl>
@@ -361,6 +361,7 @@ export function FlaggingForm({
                     <Textarea
                       placeholder="Provide additional details about the issue..."
                       className="min-h-[100px]"
+                      data-testid="flag-reason"
                       {...field}
                     />
                   </FormControl>
@@ -419,6 +420,7 @@ export function FlaggingForm({
                 type="submit"
                 disabled={isSubmitting}
                 className="flex-1"
+                data-testid="submit-flag-button"
               >
                 {isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

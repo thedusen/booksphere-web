@@ -274,7 +274,7 @@ export function FlaggingButton({
 
   // REVIEWER FIX: Implement correct status-aware styling logic.
   const isActionable = isFlagged && (flagStatus === 'open' || flagStatus === 'in_review');
-  
+
   return (
     <>
       <Button

@@ -1,7 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -114,11 +111,32 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Toast/Sonner styling improvements */
+[data-sonner-toaster] {
+  --normal-bg: hsl(var(--popover));
+  --normal-border: hsl(var(--border));
+  --normal-text: hsl(var(--popover-foreground));
+  --toast-bg: hsl(var(--popover));
+  --toast-border: hsl(var(--border));
+  --toast-text: hsl(var(--popover-foreground));
+}
+
+[data-sonner-toast] {
+  background: var(--toast-bg) !important;
+  border: 1px solid var(--toast-border) !important;
+  color: var(--toast-text) !important;
+}
+
+[data-sonner-toast] [data-description] {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 0.9 !important;
 }
 
 .animate-fade-highlight {
@@ -128,4 +146,35 @@
   0% { background-color: yellow !important; }
   80% { background-color: yellow !important; }
   100% { background-color: transparent; }
+}
+
+/* 
+ * Flagging System: UX Expert Recommendations Applied
+ * Subtle hover state for flaggable fields to indicate interactivity
+ * without visual clutter. Uses dashed underline as universal web convention.
+ */
+.flaggable-field:hover {
+  text-decoration: underline dashed;
+  text-decoration-color: hsl(var(--muted-foreground));
+  text-underline-offset: 2px;
+  cursor: help;
+  transition: text-decoration-color 0.2s ease-in-out;
+}
+
+/* Enhanced hover state for flaggable fields in dark mode */
+.dark .flaggable-field:hover {
+  text-decoration-color: hsl(var(--muted-foreground) / 0.8);
+}
+
+/* Ensure flaggable fields don't interfere with existing hover states */
+.flaggable-field {
+  position: relative;
+  display: inline-block;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+/* Accessibility: Ensure keyboard focus is visible for flaggable elements */
+.flaggable-field:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }

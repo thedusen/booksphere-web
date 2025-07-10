@@ -47,6 +47,7 @@ const LoginPage: FC = () => {
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
                                 disabled={loading}
+                                data-testid="email-input"
                             />
                         </div>
                         <div className="space-y-2">
@@ -59,12 +60,13 @@ const LoginPage: FC = () => {
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 disabled={loading}
+                                data-testid="password-input"
                             />
                         </div>
                         {error && (
                             <div className="text-red-600 text-sm" role="alert">{error}</div>
                         )}
-                        <Button className="w-full" type="submit" disabled={loading} aria-busy={loading}>
+                        <Button className="w-full" type="submit" disabled={loading} aria-busy={loading} data-testid="login-button">
                             {loading ? "Signing In..." : "Sign In"}
                         </Button>
                     </form>

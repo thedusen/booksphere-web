@@ -1,11 +1,12 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, type MockedFunction } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FlaggingProvider, useFlaggingContext } from '../FlaggingProvider';
 import { FlaggingForm } from '../FlaggingForm';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useOrganization } from '@/hooks/useOrganization';
+import { act } from '@testing-library/react';
 
 // Mock FlaggingForm to see if it's rendered
 vi.mock('../FlaggingForm', () => ({
@@ -13,7 +14,20 @@ vi.mock('../FlaggingForm', () => ({
 }));
 
 // Mock the useOrganization hook
-vi.mock('@/hooks/useOrganization');
+vi.mock('@/hooks/useOrganization', () => ({
+  useOrganization: vi.fn(() => ({
+    organizationId: 'test-org-id',
+    loading: false,
+    error: null,
+  })),
+}));
+
+// Mock toast functionality
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+  }),
+}));
 
 const TestComponent = () => {
   const context = useFlaggingContext();
@@ -33,6 +47,21 @@ const TestComponent = () => {
   );
 };
 
+const renderWithQueryClient = (component: React.ReactElement) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {component}
+    </QueryClientProvider>
+  );
+};
+
 describe('FlaggingProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -45,7 +74,7 @@ describe('FlaggingProvider', () => {
         contextValue = useFlaggingContext();
         return null;
       };
-      render(
+      renderWithQueryClient(
         <FlaggingProvider>
           <Consumer />
         </FlaggingProvider>
@@ -59,7 +88,7 @@ describe('FlaggingProvider', () => {
 
     it('should open the form and set context data', async () => {
       const user = userEvent.setup();
-      render(
+      renderWithQueryClient(
         <FlaggingProvider>
           <TestComponent />
         </FlaggingProvider>
@@ -69,12 +98,14 @@ describe('FlaggingProvider', () => {
       await user.click(screen.getByRole('button', { name: 'Open Form' }));
 
       expect(screen.getByTestId('is-open')).toHaveTextContent('true');
-      expect(screen.getByTestId('current-data')).toContain('test-id');
+      // Fix: Check the actual element content, not using toContain with string
+      const currentDataElement = screen.getByTestId('current-data');
+      expect(currentDataElement).toHaveTextContent('test-id');
       expect(FlaggingForm).toHaveBeenCalled();
     });
 
-    it('should close the form when onOpenChange is called from FlaggingForm', () => {
-        render(
+    it('should close the form when onOpenChange is called from FlaggingForm', async () => {
+        renderWithQueryClient(
             <FlaggingProvider>
               <TestComponent />
             </FlaggingProvider>
@@ -83,12 +114,20 @@ describe('FlaggingProvider', () => {
           // Open the form first
           fireEvent.click(screen.getByRole('button', { name: 'Open Form' }));
           expect(FlaggingForm).toHaveBeenCalledTimes(1);
+          
+          // Wait for the form to open
+          await waitFor(() => {
+            expect(screen.getByTestId('is-open')).toHaveTextContent('true');
+          });
     
           // Get the onOpenChange prop and call it
           const formProps = (FlaggingForm as MockedFunction<typeof FlaggingForm>).mock.calls[0][0];
           formProps.onOpenChange(false);
     
-          expect(screen.getByTestId('is-open')).toHaveTextContent('false');
+          // Wait for state update
+          await waitFor(() => {
+            expect(screen.getByTestId('is-open')).toHaveTextContent('false');
+          });
     });
   });
 
@@ -108,29 +147,49 @@ describe('FlaggingProvider', () => {
 
         React.useEffect(() => {
           context.registerTrigger('focused-trigger', triggerData);
-          triggerRef.current?.focus();
+          if (triggerRef.current) {
+            triggerRef.current.focus();
+          }
           return () => context.unregisterTrigger('focused-trigger');
         }, [context]);
 
-        return <button ref={triggerRef}>Focused Button</button>;
+        return (
+          <button 
+            ref={triggerRef}
+            data-flagging-trigger="focused-trigger"
+          >
+            Focused Button
+          </button>
+        );
       };
 
-      render(
+      renderWithQueryClient(
         <FlaggingProvider>
           <FocusableTrigger />
           <TestComponent />
         </FlaggingProvider>
       );
       
-      await user.keyboard('{Control>}{Shift>}R{/Shift}{/Control}');
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Focused Button' })).toHaveFocus();
+      });
       
-      expect(screen.getByTestId('is-open')).toHaveTextContent('true');
-      expect(screen.getByTestId('current-data')).toContain('focused-id');
+      // Simulate the keydown event on the document
+      await act(async () => {
+        fireEvent.keyDown(document, { key: 'R', ctrlKey: true, shiftKey: true });
+      });
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('is-open')).toHaveTextContent('true');
+      });
+      
+      const currentDataElement = screen.getByTestId('current-data');
+      expect(currentDataElement).toHaveTextContent('focused-id');
     });
 
     it('should not open form if no trigger is focused', async () => {
         const user = userEvent.setup();
-        render(
+        renderWithQueryClient(
           <FlaggingProvider>
             <TestComponent />
           </FlaggingProvider>
@@ -164,7 +223,7 @@ describe('FlaggingProvider', () => {
           );
         };
   
-        render(
+        renderWithQueryClient(
           <FlaggingProvider>
             <FocusTest />
           </FlaggingProvider>
@@ -180,8 +239,10 @@ describe('FlaggingProvider', () => {
         const formProps = (FlaggingForm as MockedFunction<typeof FlaggingForm>).mock.calls[0][0];
         formProps.onOpenChange(false);
   
-        // Check if focus returned to the button
-        expect(button).toHaveFocus();
+        // Wait for focus to return
+        await waitFor(() => {
+          expect(button).toHaveFocus();
+        });
       });
   });
 }); 

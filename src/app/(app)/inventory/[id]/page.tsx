@@ -22,21 +22,37 @@ interface StockItemCardProps {
 }
 
 /**
- * Memoized component for individual stock items to prevent performance issues
- * with flagging trigger re-registration.
+ * Performance Expert Optimization: Enhanced memoized component for individual stock items
+ * 
+ * PERFORMANCE IMPROVEMENTS:
+ * - Stable context data prevents flagging trigger re-registration
+ * - Memoized display values reduce string operations
+ * - Custom comparison function prevents unnecessary re-renders
+ * - Optimized for large inventories with many stock items per edition
  */
 const StockItemCard = React.memo(function StockItemCard({ item, editionTitle }: StockItemCardProps) {
-  // This context data is now stable and won't cause re-registration on every render
+  // Performance Expert: Memoize all display values to prevent recalculation
+  const displayValues = useMemo(() => ({
+    sku: item.sku || "N/A",
+    price: item.selling_price_amount ? item.selling_price_amount.toFixed(2) : "N/A",
+    location: item.location_in_store_text || "N/A",
+  }), [item.sku, item.selling_price_amount, item.location_in_store_text]);
+
+  // Performance Expert: Stable context data with granular dependencies
+  // This prevents Map churn in FlaggingProvider and trigger re-registration
   const stockItemContextData = useMemo(() => ({
     bookTitle: editionTitle,
-    sku: item.sku || "N/A",
+    sku: displayValues.sku,
     condition: item.condition_name,
     price: item.selling_price_amount,
-  }), [editionTitle, item.sku, item.condition_name, item.selling_price_amount]);
-
-  const displaySku = item.sku || "N/A";
-  const displayPrice = item.selling_price_amount ? item.selling_price_amount.toFixed(2) : "N/A";
-  const displayLocation = item.location_in_store_text || "N/A";
+    stockItemId: item.stock_item_id, // Add for better admin context
+  }), [
+    editionTitle, 
+    displayValues.sku, 
+    item.condition_name, 
+    item.selling_price_amount,
+    item.stock_item_id
+  ]);
 
   return (
     <div className="border rounded p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -49,7 +65,7 @@ const StockItemCard = React.memo(function StockItemCard({ item, editionTitle }: 
           currentValue={item.condition_name}
           fieldLabel="Condition"
           contextData={stockItemContextData}
-          className="inline-block rounded-sm px-1 -mx-1"
+          className="flaggable-field inline-block rounded-sm px-1 -mx-1"
         >
           <div className="font-medium">Condition: {item.condition_name}</div>
         </FlaggingTrigger>
@@ -59,12 +75,12 @@ const StockItemCard = React.memo(function StockItemCard({ item, editionTitle }: 
           tableName="stock_items"
           recordId={item.stock_item_id}
           fieldName="sku"
-          currentValue={displaySku}
+          currentValue={displayValues.sku}
           fieldLabel="SKU"
           contextData={stockItemContextData}
-          className="inline-block rounded-sm px-1 -mx-1"
+          className="flaggable-field inline-block rounded-sm px-1 -mx-1"
         >
-          <div className="text-sm text-muted-foreground">SKU: {displaySku}</div>
+          <div className="text-sm text-muted-foreground">SKU: {displayValues.sku}</div>
         </FlaggingTrigger>
 
         {/* Location field with flagging capability */}
@@ -72,12 +88,12 @@ const StockItemCard = React.memo(function StockItemCard({ item, editionTitle }: 
           tableName="stock_items"
           recordId={item.stock_item_id}
           fieldName="location_in_store_text"
-          currentValue={displayLocation}
+          currentValue={displayValues.location}
           fieldLabel="Location"
           contextData={stockItemContextData}
-          className="inline-block rounded-sm px-1 -mx-1"
+          className="flaggable-field inline-block rounded-sm px-1 -mx-1"
         >
-          <div className="text-sm text-muted-foreground">Location: {displayLocation}</div>
+          <div className="text-sm text-muted-foreground">Location: {displayValues.location}</div>
         </FlaggingTrigger>
       </div>
 
@@ -86,14 +102,25 @@ const StockItemCard = React.memo(function StockItemCard({ item, editionTitle }: 
         tableName="stock_items"
         recordId={item.stock_item_id}
         fieldName="selling_price_amount"
-        currentValue={`$${displayPrice}`}
+        currentValue={`$${displayValues.price}`}
         fieldLabel="Selling Price"
         contextData={stockItemContextData}
-        className="inline-block rounded-sm px-2 -mx-2"
+        className="flaggable-field inline-block rounded-sm px-2 -mx-2"
       >
-        <div className="text-base font-semibold">${displayPrice}</div>
+        <div className="text-base font-semibold">${displayValues.price}</div>
       </FlaggingTrigger>
     </div>
+);
+}, (prevProps, nextProps) => {
+  // Performance Expert: Custom comparison for StockItemCard
+  // Only re-render if critical stock item data changes
+  return (
+    prevProps.item.stock_item_id === nextProps.item.stock_item_id &&
+    prevProps.item.condition_name === nextProps.item.condition_name &&
+    prevProps.item.sku === nextProps.item.sku &&
+    prevProps.item.selling_price_amount === nextProps.item.selling_price_amount &&
+    prevProps.item.location_in_store_text === nextProps.item.location_in_store_text &&
+    prevProps.editionTitle === nextProps.editionTitle
   );
 });
 
@@ -123,7 +150,9 @@ export default function EditionDetailPage() {
             authors: edition.authors || "Unknown",
             isbn13: edition.isbn13 || "N/A",
             isbn10: edition.isbn10 || "N/A",
-            publisher: edition.publisher_name,
+            publisher: edition.publisher_name || "N/A",
+            publicationDate: edition.published_date || "N/A",
+            totalStockItems: edition.stock_items?.length || 0,
         };
     }, [edition]);
 
@@ -201,9 +230,9 @@ export default function EditionDetailPage() {
                             currentValue={edition.book_title}
                             fieldLabel="Book Title"
                             contextData={editionContextData}
-                            className="inline-block rounded-sm px-2 -mx-2"
+                            className="flaggable-field inline-block rounded-sm px-2 -mx-2"
                         >
-                            <h1 className="text-2xl font-bold tracking-tight">{edition.book_title}</h1>
+                        <h1 className="text-2xl font-bold tracking-tight">{edition.book_title}</h1>
                         </FlaggingTrigger>
 
                         {/* Authors with flagging capability */}
@@ -214,7 +243,7 @@ export default function EditionDetailPage() {
                             currentValue={edition.authors || "Unknown"}
                             fieldLabel="Authors"
                             contextData={editionContextData}
-                            className="inline-block rounded-sm px-2 -mx-2"
+                            className="flaggable-field inline-block rounded-sm px-2 -mx-2"
                         >
                             <p className="text-lg text-muted-foreground mt-1">{edition.authors || "Unknown"}</p>
                         </FlaggingTrigger>
@@ -228,7 +257,7 @@ export default function EditionDetailPage() {
                                 currentValue={edition.isbn13 || "N/A"}
                                 fieldLabel="ISBN-13"
                                 contextData={editionContextData}
-                                className="inline-block rounded-sm px-1 -mx-1"
+                                className="flaggable-field inline-block rounded-sm px-1 -mx-1"
                             >
                                 <div>ISBN-13: {edition.isbn13 || "N/A"}</div>
                             </FlaggingTrigger>
@@ -241,10 +270,40 @@ export default function EditionDetailPage() {
                                 currentValue={edition.isbn10 || "N/A"}
                                 fieldLabel="ISBN-10"
                                 contextData={editionContextData}
-                                className="inline-block rounded-sm px-1 -mx-1"
+                                className="flaggable-field inline-block rounded-sm px-1 -mx-1"
                             >
                                 <div>ISBN-10: {edition.isbn10 || "N/A"}</div>
                             </FlaggingTrigger>
+
+                            {/* Publisher with flagging capability - Business Expert: Medium priority for collector accuracy */}
+                            {edition.publisher_name && (
+                                <FlaggingTrigger
+                                    tableName="editions"
+                                    recordId={id}
+                                    fieldName="publisher_name"
+                                    currentValue={edition.publisher_name}
+                                    fieldLabel="Publisher"
+                                    contextData={editionContextData}
+                                    className="flaggable-field inline-block rounded-sm px-1 -mx-1"
+                                >
+                                    <div>Publisher: {edition.publisher_name}</div>
+                                </FlaggingTrigger>
+                            )}
+
+                            {/* Publication Date with flagging capability - Business Expert: Important for collector verification */}
+                            {edition.published_date && (
+                                <FlaggingTrigger
+                                    tableName="editions"
+                                    recordId={id}
+                                    fieldName="published_date"
+                                    currentValue={edition.published_date}
+                                    fieldLabel="Publication Date"
+                                    contextData={editionContextData}
+                                    className="flaggable-field inline-block rounded-sm px-1 -mx-1"
+                                >
+                                    <div>Published: {new Date(edition.published_date).getFullYear()}</div>
+                                </FlaggingTrigger>
+                            )}
                         </div>
                     </div>
                 </div>
