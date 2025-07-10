@@ -1,0 +1,11 @@
+# Protect booksphere-mobile from accidental edits
+# This is a reference-only folder - do not edit files in this directory
+booksphere-mobile/
+
+# Additional protection - ignore specific file types in mobile folder
+booksphere-mobile/**/*.ts
+booksphere-mobile/**/*.tsx
+booksphere-mobile/**/*.js
+booksphere-mobile/**/*.jsx
+booksphere-mobile/**/*.json
+booksphere-mobile/**/*.md 

@@ -42,3 +42,7 @@ next-env.d.ts
 
 # for development
 /ignores
+
+# Exclude booksphere-mobile (reference-only, separate project)
+# This prevents accidental commits to the wrong repository
+booksphere-mobile/
