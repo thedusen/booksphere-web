@@ -140,18 +140,18 @@ This plan has been updated to incorporate architectural and code-level feedback,
 
 The following tasks are **atomic** and should be executed sequentially by coding agents. Each task includes a brief "Complexity vs. Benefit" assessment to help with prioritisation and risk management.
 
-| # | Task | Description | Expert Workflow | Complexity | Benefit |
-|---|------|-------------|-----------------|------------|---------|
-| 1 | Fix Provider Integration | Correct the errors introduced when wrapping `src/app/(app)/layout.tsx` with `FlaggingProvider` (duplicate imports, missing symbols, ensure `QueryClient`, `TooltipProvider`, `AuthProvider`, `Sidebar`, `Header` are in scope). | `;review` → `;code` | Low | Blocking – required for context to function globally. |
-| 2 | Integrate First `FlaggingTrigger` | Wrap the `title` cell in `src/app/(app)/components/inventory/StockItemRow.tsx` with `<FlaggingTrigger>` as proof-of-concept. | `;code` → `;review` | Low | Validates end-to-end flow for end-users. |
-| 3 | Decide Additional Flaggable Fields | (Requires Product input) Enumerate which other fields across UI should be flaggable (e.g. author, publication year). | `;business` → `;ux` | N/A | Govern scope of UI integration. |
-| 4 | Wrap Remaining Fields | Add `FlaggingTrigger` to all agreed fields throughout the application. | `;code` → `;perf` → `;review` | Medium | Completes user-facing flagging capability. |
-| 5 | Create Admin Flags Page | Add route `src/app/(app)/admin/flags/page.tsx`, guarded by role `admin`. | `;security` → `;code` → `;review` | Medium | Enables staff to review flags. |
-| 6 | Build Flags Data Table | Use `get_paginated_flags` RPC to display list with paging, sorting, filtering. | `;arch` → `;perf` → `;code` → `;review` | Medium | Operational visibility. |
-| 7 | Build Flag Detail Dialog | Dialog/sheet showing full flag context plus controls (approve / reject) that call `update_flag_status` RPC. | `;ux` → `;security` → `;code` → `;review` | Medium | Core admin workflow. |
-| 8 | Realtime Notifications | Subscribe via Supabase Realtime to new flags → surface toast/badge for admins. | `;arch` → `;security` → `;code` → `;review` | Medium | Improves admin responsiveness. |
-| 9 | Fix Remaining Unit Tests | Resolve 3 failing `FlaggingProvider` tests and 10 failing `FlaggingTrigger` tests (mostly expectation tweaks). | `;test` → `;review` | Low | Restores CI confidence to 100 %. |
-| 10 | Resolve Playwright Config | Fix duplicate `@playwright/test` issue, move E2E specs out of config scope. | `;deploy` → `;test` | Low | Unblocks E2E pipeline. |
+| # | Task | Description | Expert Workflow | Complexity | Benefit | Status |
+|---|------|-------------|-----------------|------------|---------|---------|
+| 1 | ✅ Fix Provider Integration | Correct the errors introduced when wrapping `src/app/(app)/layout.tsx` with `FlaggingProvider` (duplicate imports, missing symbols, ensure `QueryClient`, `TooltipProvider`, `AuthProvider`, `Sidebar`, `Header` are in scope). | `;review` → `;code` | Low | Blocking – required for context to function globally. | **COMPLETED** |
+| 2 | ✅ Integrate First `FlaggingTrigger` | Wrap the `title` cell in `src/app/(app)/components/inventory/StockItemRow.tsx` with `<FlaggingTrigger>` as proof-of-concept. | `;code` → `;review` | Low | Validates end-to-end flow for end-users. | **COMPLETED** |
+| 3 | ✅ Decide Additional Flaggable Fields | (Requires Product input) Enumerate which other fields across UI should be flaggable (e.g. author, publication year). | `;business` → `;ux` | N/A | Govern scope of UI integration. | **COMPLETED** |
+| 4 | ✅ Wrap Remaining Fields | Add `FlaggingTrigger` to all agreed fields throughout the application. | `;code` → `;perf` → `;review` | Medium | Completes user-facing flagging capability. | **COMPLETED** |
+| 5 | 🔄 Create Admin Flags Page | Add route `src/app/(app)/admin/flags/page.tsx`, guarded by role `admin`. | `;security` → `;code` → `;review` | Medium | Enables staff to review flags. | **BASIC VERSION DONE** |
+| 6 | Build Flags Data Table | Use `get_paginated_flags` RPC to display list with paging, sorting, filtering. | `;arch` → `;perf` → `;code` → `;review` | Medium | Operational visibility. | **NEXT PRIORITY** |
+| 7 | Build Flag Detail Dialog | Dialog/sheet showing full flag context plus controls (approve / reject) that call `update_flag_status` RPC. | `;ux` → `;security` → `;code` → `;review` | Medium | Core admin workflow. | **PENDING** |
+| 8 | Realtime Notifications | Subscribe via Supabase Realtime to new flags → surface toast/badge for admins. | `;arch` → `;security` → `;code` → `;review` | Medium | Improves admin responsiveness. | **PENDING** |
+| 9 | ✅ Fix Remaining Unit Tests | Resolve 3 failing `FlaggingProvider` tests and 10 failing `FlaggingTrigger` tests (mostly expectation tweaks). | `;test` → `;review` | Low | Restores CI confidence to 100 %. | **COMPLETED** |
+| 10 | ✅ Resolve Playwright Config | Fix duplicate `@playwright/test` issue, move E2E specs out of config scope. | `;deploy` → `;test` | Low | Unblocks E2E pipeline. | **COMPLETED** |
 
 ### Post-Completion System Review
 **After All Tasks Complete:** `;arch` → `;security` → `;perf` → `;test` → `;deploy`
