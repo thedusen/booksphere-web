@@ -656,11 +656,15 @@ const fetchCatalogingJobs = async (
     .from('cataloging_jobs')
     .select('*', { count: 'exact' })
     .eq('organization_id', organizationId)
-    .order('created_at', { ascending: false });
+    .order(filters.sort_by, { ascending: filters.sort_order === 'asc' });
 
   // Apply filters
   if (filters.status) {
     query = query.eq('status', filters.status);
+  }
+  
+  if (filters.source_type) {
+    query = query.eq('source_type', filters.source_type);
   }
   
   if (filters.user_id) {
@@ -918,7 +922,10 @@ export const useCatalogingJob = (jobId: string) => {
 
 /**
  * Cataloging job statistics hook
- * FIXED: Proper error handling and organization scoping
+ * PERFORMANCE OPTIMIZED: Uses database-level aggregation instead of client-side processing
+ * 
+ * This hook now calls a database RPC function that performs COUNT with GROUP BY
+ * directly in the database, drastically reducing data transfer and processing load.
  */
 export const useCatalogingJobStats = () => {
   const { organizationId } = useOrganization();
@@ -935,29 +942,38 @@ export const useCatalogingJobStats = () => {
         );
       }
 
+      // Use database RPC for efficient aggregation
       const { data, error } = await supabase
-        .from('cataloging_jobs')
-        .select('status')
-        .eq('organization_id', organizationId);
+        .rpc('get_cataloging_job_stats', { org_id: organizationId });
 
       if (error) {
         throw createErrorHandler('Fetch cataloging job stats')(error);
       }
 
-      // Calculate statistics
-      const stats = {
-        total: data.length,
-        pending: data.filter(job => job.status === 'pending').length,
-        processing: data.filter(job => job.status === 'processing').length,
-        completed: data.filter(job => job.status === 'completed').length,
-        finalized: data.filter(job => job.status === 'finalized').length,
-        failed: data.filter(job => job.status === 'failed').length,
-      };
+      if (!data || data.length === 0) {
+        // Return zero counts if no data
+        return {
+          total: 0,
+          pending: 0,
+          processing: 0,
+          completed: 0,
+          failed: 0,
+        };
+      }
 
-      return stats;
+      // The RPC returns an array with one row containing all counts
+      const stats = data[0];
+      
+      return {
+        total: Number(stats.total),
+        pending: Number(stats.pending),
+        processing: Number(stats.processing),
+        completed: Number(stats.completed),
+        failed: Number(stats.failed),
+      };
     },
     enabled: !!organizationId,
-    staleTime: 60000, // 1 minute
+    staleTime: 60000, // 1 minute - can be longer since this is now very fast
     gcTime: 5 * 60 * 1000,
     retry: (failureCount, error) => {
       if (error instanceof CatalogingJobError && !error.retryable) {
@@ -1210,7 +1226,7 @@ export const useFinalizeCatalogingJob = () => {
 
 /**
  * Delete cataloging jobs mutation with bulk support
- * FIXED: Proper error handling and optimistic updates
+ * FIXED: Server-side validation and proper error handling
  */
 export const useDeleteCatalogingJobs = () => {
   const { organizationId } = useOrganization();
@@ -1219,36 +1235,72 @@ export const useDeleteCatalogingJobs = () => {
   return useMutation({
     mutationKey: [getMutationKey('delete', null, organizationId)],
     mutationFn: async (jobIds: string[]) => {
+      // The organizationId is no longer needed here, as it's handled by RLS.
+      // We still check for it to ensure the user context is loaded.
       if (!organizationId) {
         throw new CatalogingJobError(
-          'Organization ID is required',
+          'User organization context is not available.',
           'MISSING_ORG_ID',
           {},
           false
         );
       }
 
-      if (!jobIds.length) {
+      if (!jobIds || jobIds.length === 0) {
         throw new CatalogingJobError(
-          'At least one job ID is required',
+          'At least one job ID is required.',
           'MISSING_JOB_IDS',
           {},
           false
         );
       }
 
-      // Delete jobs
-      const { error } = await supabase
-        .from('cataloging_jobs')
-        .delete()
-        .in('job_id', jobIds)
-        .eq('organization_id', organizationId);
+      // Call the secure, prepared statement execution wrapper
+      const { data, error } = await supabase
+        .rpc('execute_bulk_delete', {
+          job_ids: jobIds
+          // max_batch_size can be passed here if needed, defaults to 50
+        });
 
       if (error) {
         throw createErrorHandler('Delete cataloging jobs')(error);
       }
 
-      return { deletedJobIds: jobIds };
+      // The new functions return an array, so we expect one result row
+      if (!data || data.length === 0) {
+        throw new CatalogingJobError(
+          'Invalid response from delete_cataloging_jobs',
+          'INVALID_RESPONSE',
+          { response: data },
+          false
+        );
+      }
+
+      const result = data[0];
+      
+      // Handle partial failures
+      if (result.invalid_count > 0) {
+        const message = result.deleted_count > 0 
+          ? `${result.deleted_count} job(s) deleted, ${result.invalid_count} could not be deleted (permission denied or not found).`
+          : `No jobs could be deleted. (${result.invalid_count} invalid).`;
+        
+        throw new CatalogingJobError(
+          message,
+          'PARTIAL_FAILURE',
+          { 
+            deleted_count: result.deleted_count,
+            invalid_count: result.invalid_count,
+            deleted_job_ids: result.deleted_job_ids,
+            invalid_job_ids: result.invalid_job_ids
+          },
+          false
+        );
+      }
+
+      return { 
+        deletedJobIds: result.deleted_job_ids,
+        deletedCount: result.deleted_count
+      };
     },
     onMutate: async (jobIds) => {
       if (!organizationId) return;
@@ -1289,7 +1341,7 @@ export const useDeleteCatalogingJobs = () => {
 
 /**
  * Retry cataloging jobs mutation
- * FIXED: Proper error handling and status management
+ * FIXED: Server-side validation and proper error handling
  */
 export const useRetryCatalogingJobs = () => {
   const { organizationId } = useOrganization();
@@ -1300,38 +1352,66 @@ export const useRetryCatalogingJobs = () => {
     mutationFn: async (jobIds: string[]) => {
       if (!organizationId) {
         throw new CatalogingJobError(
-          'Organization ID is required',
+          'User organization context is not available.',
           'MISSING_ORG_ID',
           {},
           false
         );
       }
 
-      if (!jobIds.length) {
+      if (!jobIds || jobIds.length === 0) {
         throw new CatalogingJobError(
-          'At least one job ID is required',
+          'At least one job ID is required.',
           'MISSING_JOB_IDS',
           {},
           false
         );
       }
 
-      // Update job statuses to pending and clear error messages
-      const { error } = await supabase
-        .from('cataloging_jobs')
-        .update({ 
-          status: 'pending',
-          error_message: null,
-          updated_at: new Date().toISOString()
-        })
-        .in('job_id', jobIds)
-        .eq('organization_id', organizationId);
+      // Call the secure, prepared statement execution wrapper
+      const { data, error } = await supabase
+        .rpc('execute_bulk_retry', {
+          job_ids: jobIds
+        });
 
       if (error) {
         throw createErrorHandler('Retry cataloging jobs')(error);
       }
 
-      return { retriedJobIds: jobIds };
+      if (!data || data.length === 0) {
+        throw new CatalogingJobError(
+          'Invalid response from retry_cataloging_jobs',
+          'INVALID_RESPONSE',
+          { response: data },
+          false
+        );
+      }
+
+      const result = data[0];
+      
+      // Handle partial failures
+      if (result.invalid_count > 0) {
+        const message = result.retried_count > 0 
+          ? `${result.retried_count} job(s) retried, ${result.invalid_count} could not be retried (not failed, permission denied, or not found).`
+          : `No jobs could be retried. (${result.invalid_count} invalid).`;
+        
+        throw new CatalogingJobError(
+          message,
+          'PARTIAL_FAILURE',
+          { 
+            retried_count: result.retried_count,
+            invalid_count: result.invalid_count,
+            retried_job_ids: result.retried_job_ids,
+            invalid_job_ids: result.invalid_job_ids
+          },
+          false
+        );
+      }
+
+      return { 
+        retriedJobIds: result.retried_job_ids,
+        retriedCount: result.retried_count
+      };
     },
     onMutate: async (jobIds) => {
       if (!organizationId) return;

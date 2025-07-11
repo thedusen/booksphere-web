@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CATALOGING_DEFAULTS, CATALOGING_VALIDATION_LIMITS, CATALOGING_PRICE_LIMITS, CATALOGING_DATE_LIMITS, CATALOGING_IMAGE_LIMITS } from '@/lib/constants/cataloging';
 
 // Cataloging job status enum validation
 export const catalogingJobStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed']);
@@ -105,12 +106,15 @@ export const catalogingJobFinalizeRequestSchema = z.object({
 // Cataloging job list filters validation
 export const catalogingJobFiltersSchema = z.object({
   status: catalogingJobStatusSchema.optional(),
+  source_type: z.enum(['isbn_scan', 'manual_isbn', 'image_capture']).optional(),
   date_from: z.string().datetime({ message: 'Date from must be a valid ISO datetime' }).optional(),
   date_to: z.string().datetime({ message: 'Date to must be a valid ISO datetime' }).optional(),
   user_id: z.string().uuid('User ID must be a valid UUID').optional(),
-  search_query: z.string().max(100, 'Search query must be less than 100 characters').optional(),
-  page: z.number().int().min(1, 'Page must be at least 1').optional().default(1),
-  limit: z.number().int().min(1, 'Limit must be at least 1').max(100, 'Limit cannot exceed 100').optional().default(20),
+  search_query: z.string().max(CATALOGING_DEFAULTS.MAX_SEARCH_QUERY_LENGTH, `Search query must be less than ${CATALOGING_DEFAULTS.MAX_SEARCH_QUERY_LENGTH} characters`).optional(),
+  sort_by: z.enum(['created_at', 'updated_at', 'status']).optional().default(CATALOGING_DEFAULTS.SORT_BY),
+  sort_order: z.enum(['asc', 'desc']).optional().default(CATALOGING_DEFAULTS.SORT_ORDER),
+  page: z.number().int().min(1, 'Page must be at least 1').optional().default(CATALOGING_DEFAULTS.PAGE_NUMBER),
+  limit: z.number().int().min(1, 'Limit must be at least 1').max(CATALOGING_DEFAULTS.MAX_PAGE_SIZE, `Limit cannot exceed ${CATALOGING_DEFAULTS.MAX_PAGE_SIZE}`).optional().default(CATALOGING_DEFAULTS.PAGE_SIZE),
 }).refine(data => {
   // If both date filters are provided, date_to should be after date_from
   if (data.date_from && data.date_to) {
@@ -157,11 +161,11 @@ export const catalogingJobErrorSchema = z.object({
 
 // Bulk operations schema
 export const catalogingJobBulkDeleteSchema = z.object({
-  job_ids: z.array(z.string().uuid('Job ID must be a valid UUID')).min(1, 'At least one job ID is required').max(50, 'Maximum 50 jobs can be deleted at once'),
+  job_ids: z.array(z.string().uuid('Job ID must be a valid UUID')).min(1, 'At least one job ID is required').max(CATALOGING_DEFAULTS.MAX_BULK_DELETE, `Maximum ${CATALOGING_DEFAULTS.MAX_BULK_DELETE} jobs can be deleted at once`),
 });
 
 export const catalogingJobBulkRetrySchema = z.object({
-  job_ids: z.array(z.string().uuid('Job ID must be a valid UUID')).min(1, 'At least one job ID is required').max(20, 'Maximum 20 jobs can be retried at once'),
+  job_ids: z.array(z.string().uuid('Job ID must be a valid UUID')).min(1, 'At least one job ID is required').max(CATALOGING_DEFAULTS.MAX_BULK_RETRY, `Maximum ${CATALOGING_DEFAULTS.MAX_BULK_RETRY} jobs can be retried at once`),
 });
 
 // Type inference for use in components
@@ -174,6 +178,7 @@ export type CatalogingJobUpdate = z.infer<typeof catalogingJobUpdateSchema>;
 export type CatalogingJobError = z.infer<typeof catalogingJobErrorSchema>;
 export type CatalogingJobBulkDelete = z.infer<typeof catalogingJobBulkDeleteSchema>;
 export type CatalogingJobBulkRetry = z.infer<typeof catalogingJobBulkRetrySchema>;
+export type CatalogingJobSourceType = z.infer<typeof catalogingJobFiltersSchema.shape.source_type>;
 
 // Utility functions for validation
 export function validateBookMetadata(data: unknown): { success: true; data: BookMetadata } | { success: false; error: z.ZodError } {

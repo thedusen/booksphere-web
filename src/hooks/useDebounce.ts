@@ -1,23 +1,47 @@
-import { useEffect, useState } from 'react';
-
 /**
- * useDebounce hook
- * Returns a debounced version of the input value after the specified delay.
- * @param value - The value to debounce
- * @param delay - The debounce delay in milliseconds
+ * useDebounce Hook
+ * 
+ * A React hook that debounces a value, delaying updates until after a specified delay.
+ * Useful for preventing excessive API calls during user input.
+ * 
+ * Features:
+ * - Configurable delay
+ * - Automatic cleanup on unmount
+ * - TypeScript support
+ * - Optimized for performance
+ * 
+ * Usage:
+ * ```tsx
+ * const [searchTerm, setSearchTerm] = useState('');
+ * const debouncedSearchTerm = useDebounce(searchTerm, 300);
+ * 
+ * useEffect(() => {
+ *   if (debouncedSearchTerm) {
+ *     // Perform search API call
+ *   }
+ * }, [debouncedSearchTerm]);
+ * ```
  */
+
+import { useState, useEffect } from 'react';
+
 export function useDebounce<T>(value: T, delay: number): T {
-    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  // State to store the debounced value
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
+  useEffect(() => {
+    // Set up a timer to update the debounced value after the delay
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
 
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [value, delay]);
+    // Cleanup function to clear the timeout if value changes before delay
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
 
-    return debouncedValue;
-} 
+  return debouncedValue;
+}
+
+export default useDebounce; 

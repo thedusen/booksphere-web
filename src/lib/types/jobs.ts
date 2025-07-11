@@ -1,4 +1,5 @@
 import { Database } from '@/lib/supabase/types';
+import { CATALOGING_STATUS_LABELS, CATALOGING_STATUS_COLORS } from '@/lib/constants/cataloging';
 
 // Use generated Supabase types for cataloging jobs
 export type CatalogingJob = Database['public']['Tables']['cataloging_jobs']['Row'];
@@ -186,33 +187,11 @@ export function isTypedCatalogingJob(value: unknown): value is TypedCatalogingJo
 
 // Utility functions for working with cataloging jobs
 export function getCatalogingJobDisplayStatus(status: CatalogingJobStatus): string {
-  switch (status) {
-    case 'pending':
-      return 'Pending Processing';
-    case 'processing':
-      return 'Processing';
-    case 'completed':
-      return 'Ready for Review';
-    case 'failed':
-      return 'Processing Failed';
-    default:
-      return 'Unknown Status';
-  }
+  return CATALOGING_STATUS_LABELS[status] || 'Unknown Status';
 }
 
 export function getCatalogingJobStatusColor(status: CatalogingJobStatus): string {
-  switch (status) {
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'processing':
-      return 'bg-blue-100 text-blue-800';
-    case 'completed':
-      return 'bg-green-100 text-green-800';
-    case 'failed':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
+  return CATALOGING_STATUS_COLORS[status] || 'bg-gray-100 text-gray-800';
 }
 
 export function isCatalogingJobActionable(status: CatalogingJobStatus): boolean {
