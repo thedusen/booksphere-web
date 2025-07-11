@@ -1,4 +1,5 @@
 # Exclude booksphere-mobile from Cursor's indexing
 # This prevents the mobile project from appearing in search results
 # and reduces the chance of accidental edits
-booksphere-mobile/ 
+# NOTE: Commented out to allow indexing for reference and search access
+# booksphere-mobile/ 

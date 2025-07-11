@@ -23,34 +23,27 @@ if (typeof Element !== 'undefined') {
   }
 }
 
-// Mock Supabase client
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    rpc: vi.fn(),
-    from: vi.fn(() => ({
-      select: vi.fn(),
-      insert: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    })),
-    auth: {
-      getUser: vi.fn(() => Promise.resolve({
-        data: { user: { id: 'test-user-id' } },
-        error: null
-      })),
-    },
-  },
-}))
-
-// Mock TanStack Query
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: vi.fn(),
-  useMutation: vi.fn(),
-  useQueryClient: vi.fn(() => ({
-    invalidateQueries: vi.fn(),
+// Mock Supabase client - but only for non-hook tests
+// Hook tests will mock this themselves
+const mockSupabase = {
+  rpc: vi.fn(),
+  from: vi.fn(() => ({
+    select: vi.fn(),
+    insert: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
   })),
-  QueryClient: vi.fn(),
-  QueryClientProvider: ({ children }: { children: React.ReactNode }) => children,
+  auth: {
+    getUser: vi.fn(() => Promise.resolve({
+      data: { user: { id: 'test-user-id' } },
+      error: null
+    })),
+  },
+}
+
+// Only mock Supabase for component tests, not hook tests
+vi.mock('@/lib/supabase', () => ({
+  supabase: mockSupabase,
 }))
 
 // Mock useOrganization hook

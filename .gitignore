@@ -45,4 +45,5 @@ next-env.d.ts
 
 # Exclude booksphere-mobile (reference-only, separate project)
 # This prevents accidental commits to the wrong repository
-booksphere-mobile/
+# NOTE: Commented out to allow Cursor access for reference and copying
+# booksphere-mobile/

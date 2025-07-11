@@ -1,5 +1,5 @@
 ---
-description: Protect booksphere-mobile from accidental edits
+description: Protect booksphere-mobile from accidental edits while allowing reference access
 alwaysApply: true
 ---
 
@@ -14,23 +14,30 @@ alwaysApply: true
 - Any edits could corrupt the mobile project or create merge conflicts
 
 ## Strict Rules
-1. **NO EDITS**: Never use edit_file, search_replace, or any file modification tools on files in `booksphere-mobile/`
-2. **READ-ONLY**: You may read files from `booksphere-mobile/` for reference, but NEVER modify them
-3. **NO SUGGESTIONS**: Do not suggest changes to mobile files, even if you spot issues
-4. **REDIRECT**: If asked to modify mobile files, redirect the user to work in the actual booksphere-mobile project
+1. **NO DIRECT EDITS**: Never use edit_file, search_replace, or any file modification tools on files in `booksphere-mobile/`
+2. **READ ACCESS ALLOWED**: You may read files from `booksphere-mobile/` for reference and analysis
+3. **COPY ALLOWED**: You may copy content from mobile files to create new files in the web project (`booksphere-web/`)
+4. **NO SUGGESTIONS FOR MOBILE**: Do not suggest changes to mobile files, even if you spot issues
 
 ## Allowed Actions
 - ✅ Reading mobile files for reference
-- ✅ Analyzing patterns to apply to web project
-- ✅ Understanding shared database schemas
+- ✅ Copying patterns/code from mobile to web project
+- ✅ Creating new files in web project based on mobile patterns
+- ✅ Analyzing shared database schemas
+- ✅ Using mobile files as templates for web implementation
 
 ## Forbidden Actions
-- ❌ Any file edits in booksphere-mobile/
+- ❌ Any direct file edits in booksphere-mobile/
 - ❌ Creating new files in booksphere-mobile/
 - ❌ Deleting files from booksphere-mobile/
 - ❌ Moving/renaming files in booksphere-mobile/
 - ❌ Running terminal commands that affect booksphere-mobile/
 
+## When Copying Content
+- Always create new files in the appropriate `booksphere-web/` directories
+- Adapt mobile-specific code (React Native) to web equivalents (React)
+- Maintain the same architectural patterns but adjust for web platform
+
 ## Error Response
-If asked to modify mobile files, respond:
-"I cannot modify files in booksphere-mobile/ as it's a reference-only directory. Please work in the actual booksphere-mobile project for any mobile-related changes." 
+If asked to modify mobile files directly, respond:
+"I cannot modify files in booksphere-mobile/ as it's a reference-only directory. However, I can read these files and help you create equivalent functionality in the web project." 
