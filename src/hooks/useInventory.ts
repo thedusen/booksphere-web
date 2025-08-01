@@ -5,6 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 // ✅ CORRECTED: All type imports now come from the single shared package
 import type { FilterType, GroupedEdition as BaseGroupedEdition, BookSummary, StockItemDetails, ConditionStandard } from '@/lib/types/inventory';
 import React from 'react';
+import { Database } from '@/lib/supabase/types';
 
 // Extend GroupedEdition to include max_date_added for pagination
 export interface GroupedEditionWithDate extends BaseGroupedEdition {
@@ -22,7 +23,7 @@ interface InventoryHookParams extends BaseHookParams {
   searchQuery: string;
   filterType: FilterType;
   sortBy?: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
 }
 
 interface BookSummaryParams extends BaseHookParams {
@@ -61,6 +62,8 @@ interface EditionDetailsParams extends BaseHookParams {
 
 const ITEMS_PER_PAGE = 20;
 
+type SearchInventoryResponse = Database['public']['Functions']['search_inventory']['Returns'];
+
 export const useInventory = (
   params: InventoryHookParams
 ): UseInfiniteQueryResult<InfiniteData<GroupedEditionWithDate[], unknown>, Error> => {
@@ -82,12 +85,12 @@ export const useInventory = (
         p_last_edition_id: last_edition_id,
       });
       if (error) throw error;
-      return (data || []).map((item: any) => ({
+      return (data || []).map((item: SearchInventoryResponse[number]) => ({
         ...item,
-        total_copies: parseInt(item.total_copies),
+        total_copies: parseInt(String(item.total_copies)), // Ensure total_copies is a string before parsing
         price_range: {
-          min: parseFloat(item.min_price || '0'),
-          max: parseFloat(item.max_price || '0'),
+          min: parseFloat(String(item.min_price || '0')), // Ensure min_price is a string before parsing
+          max: parseFloat(String(item.max_price || '0')), // Ensure max_price is a string before parsing
         },
       })) as GroupedEditionWithDate[];
     },

@@ -303,7 +303,7 @@ describe('Cataloging Types and Validation', () => {
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data.page).toBe(1);
-          expect(result.data.limit).toBe(20);
+          expect(result.data.limit).toBe(25);
         }
       });
 

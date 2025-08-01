@@ -1,11 +1,76 @@
+"use client";
 import React from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, BookCopy, LogOut, Flag, Shield } from "lucide-react";
+import { LayoutDashboard, BookCopy, LogOut, Flag, Shield, BookCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 const Sidebar: React.FC = () => {
+    const pathname = usePathname();
+    const router = useRouter();
+    
+    // Navigation items with active state detection
+    const navigationItems = [
+        {
+            href: "/dashboard",
+            icon: LayoutDashboard,
+            label: "Dashboard",
+            isActive: pathname === "/dashboard"
+        },
+        {
+            href: "/inventory",
+            icon: BookCopy,
+            label: "Inventory",
+            isActive: pathname.startsWith("/inventory")
+        },
+        {
+            href: "/cataloging",
+            icon: BookCheck,
+            label: "Cataloging Jobs",
+            isActive: pathname.startsWith("/cataloging")
+        }
+    ];
+
+    const adminItems = [
+        {
+            href: "/admin/flags",
+            icon: Flag,
+            label: "Data Quality Flags",
+            isActive: pathname.startsWith("/admin/flags")
+        }
+    ];
+
+    /**
+     * Handle user logout with proper error handling and navigation
+     */
+    const handleSignOut = async () => {
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error('Logout error:', error);
+                toast.error('Failed to sign out. Please try again.');
+                return;
+            }
+            
+            // Clear any local storage or session data if needed
+            // The supabase client will handle clearing the session
+            
+            // Navigate to login page
+            router.push('/login');
+            
+            // Show success message
+            toast.success('Signed out successfully');
+        } catch (error) {
+            console.error('Unexpected logout error:', error);
+            toast.error('An unexpected error occurred during sign out');
+        }
+    };
+
     return (
-        <aside className="flex flex-col h-full w-60 bg-gray-900 text-white justify-between py-6 px-4">
+        <aside className="flex flex-col h-screen w-60 bg-gray-900 text-white justify-between py-6 px-4">
             {/* Top: Logo/Title */}
             <div>
                 <div className="mb-8 flex items-center gap-2 text-2xl font-bold tracking-tight">
@@ -15,19 +80,26 @@ const Sidebar: React.FC = () => {
                 </div>
                 
                 {/* Main Navigation */}
-                <nav className="flex flex-col gap-2 mb-6">
-                    <Button asChild variant="ghost" className="justify-start w-full">
-                        <Link href="/dashboard">
-                            <LayoutDashboard className="mr-2 h-5 w-5" />
-                            Dashboard
-                        </Link>
-                    </Button>
-                    <Button asChild variant="ghost" className="justify-start w-full">
-                        <Link href="/inventory">
-                            <BookCopy className="mr-2 h-5 w-5" />
-                            Inventory
-                        </Link>
-                    </Button>
+                <nav className="flex flex-col gap-2 mb-6" role="navigation" aria-label="Main navigation">
+                    {navigationItems.map(({ href, icon: Icon, label, isActive }) => (
+                        <Button 
+                            key={href}
+                            asChild 
+                            variant="ghost" 
+                            className={cn(
+                                "justify-start w-full transition-colors",
+                                isActive && "bg-gray-800 text-white"
+                            )}
+                        >
+                            <Link 
+                                href={href}
+                                aria-current={isActive ? "page" : undefined}
+                            >
+                                <Icon className="mr-2 h-5 w-5" />
+                                {label}
+                            </Link>
+                        </Button>
+                    ))}
                 </nav>
 
                 {/* Admin Section */}
@@ -36,21 +108,38 @@ const Sidebar: React.FC = () => {
                         <Shield className="h-4 w-4" />
                         <span>Administration</span>
                     </div>
-                    <nav className="flex flex-col gap-2">
-                        <Button asChild variant="ghost" className="justify-start w-full">
-                            <Link href="/admin/flags">
-                                <Flag className="mr-2 h-5 w-5" />
-                                Data Quality Flags
-                            </Link>
-                        </Button>
-                        {/* TODO: Add more admin links as needed */}
+                    <nav className="flex flex-col gap-2" role="navigation" aria-label="Administration">
+                        {adminItems.map(({ href, icon: Icon, label, isActive }) => (
+                            <Button 
+                                key={href}
+                                asChild 
+                                variant="ghost" 
+                                className={cn(
+                                    "justify-start w-full transition-colors",
+                                    isActive && "bg-gray-800 text-white"
+                                )}
+                            >
+                                <Link 
+                                    href={href}
+                                    aria-current={isActive ? "page" : undefined}
+                                >
+                                    <Icon className="mr-2 h-5 w-5" />
+                                    {label}
+                                </Link>
+                            </Button>
+                        ))}
                     </nav>
                 </div>
             </div>
             
             {/* Bottom: Sign Out */}
-            <div>
-                <Button variant="ghost" className="justify-start w-full">
+            <div data-testid="user-menu">
+                <Button 
+                    variant="ghost" 
+                    className="justify-start w-full hover:bg-red-600/20 hover:text-red-200 transition-colors"
+                    aria-label="Sign out of your account"
+                    onClick={handleSignOut}
+                >
                     <LogOut className="mr-2 h-5 w-5" />
                     Sign Out
                 </Button>

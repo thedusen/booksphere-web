@@ -26,7 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog';
 import { useCatalogingJob, useDeleteCatalogingJobs, useRetryCatalogingJobs } from '@/hooks/useCatalogJobs';
-import { getCatalogingJobDisplayStatus } from '@/lib/types/jobs';
+import { getCatalogingJobDisplayStatus, CatalogingJobStatus } from '@/lib/types/jobs';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -66,7 +66,7 @@ export default function CatalogingJobDetailsPage() {
   };
 
   // Render status badge with icon
-  const StatusBadge = ({ status }: { status: string }) => {
+  const StatusBadge = ({ status }: { status: CatalogingJobStatus }) => {
     const getStatusIcon = () => {
       switch (status) {
         case 'pending':
@@ -88,7 +88,7 @@ export default function CatalogingJobDetailsPage() {
         className="flex items-center gap-1"
       >
         {getStatusIcon()}
-        {getCatalogingJobDisplayStatus(status as any)}
+        {getCatalogingJobDisplayStatus(status)}
       </Badge>
     );
   };

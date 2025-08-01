@@ -24,10 +24,29 @@ import {
   createMockFlagFormData,
   createMockFlag,
 } from '../../test/utils/test-utils';
-import type { PostgrestError } from '@supabase/supabase-js';
+import type { PostgrestError, User } from '@supabase/supabase-js';
+import { useOrganization, OrgContextType } from '@/hooks/useOrganization';
 
 // Mock Supabase
-vi.mock('@/lib/supabase');
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    rpc: vi.fn(),
+    from: vi.fn(() => ({
+      select: vi.fn(),
+      insert: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    })),
+    channel: vi.fn(),
+    auth: {
+      getUser: vi.fn(() => Promise.resolve({
+        data: { user: { id: 'test-user-id' } },
+        error: null,
+      })),
+    },
+  }
+}));
+vi.mock('@/hooks/useOrganization');
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -50,11 +69,27 @@ const createMockSupabaseError = (
   details: 'mock details',
   hint: 'mock hint',
   code: '500',
+  name: 'PostgrestError',
 });
+
+const mockUser: User = {
+  id: 'test-user-id',
+  app_metadata: {},
+  user_metadata: {},
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+};
 
 describe('useFlagging Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    const mockOrgContext: OrgContextType = {
+      organizationId: 'test-org-id',
+      loading: false,
+      error: null,
+      user: mockUser,
+    };
+    vi.mocked(useOrganization).mockReturnValue(mockOrgContext);
   });
 
   afterEach(() => {
@@ -85,6 +120,7 @@ describe('useFlagging Hook', () => {
       });
 
       expect(supabase.rpc).toHaveBeenCalledWith('create_data_quality_flag', {
+        p_organization_id: 'test-org-id',
         p_table_name: flagData.table_name,
         p_record_id: flagData.record_id,
         p_flag_type: flagData.flag_type,
@@ -171,6 +207,7 @@ describe('useFlagging Hook', () => {
       });
 
       expect(supabase.rpc).toHaveBeenCalledWith('create_data_quality_flag', {
+        p_organization_id: 'test-org-id',
         p_table_name: 'books',
         p_record_id: 'test-record-id',
         p_flag_type: FlagType.INCORRECT_DATA,
@@ -216,7 +253,7 @@ describe('useFlagging Hook', () => {
       });
 
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-        queryKey: ['flags', flagData.table_name, flagData.record_id],
+        queryKey: ['flags'],
       });
     });
   });
@@ -250,10 +287,11 @@ describe('useFlagging Hook', () => {
       });
 
       expect(supabase.rpc).toHaveBeenCalledWith('update_flag_status', {
+        p_organization_id: 'test-org-id',
         p_flag_id: updateData.flag_id,
         p_status: updateData.status,
         p_resolution_notes: updateData.resolution_notes,
-        p_reviewed_by: updateData.reviewed_by,
+        p_reviewed_by: 'test-user-id',
       });
     });
 
@@ -304,10 +342,11 @@ describe('useFlagging Hook', () => {
       });
 
       expect(supabase.rpc).toHaveBeenCalledWith('update_flag_status', {
+        p_organization_id: 'test-org-id',
         p_flag_id: minimalUpdateData.flag_id,
         p_status: minimalUpdateData.status,
         p_resolution_notes: null,
-        p_reviewed_by: null,
+        p_reviewed_by: 'test-user-id',
       });
     });
   });
@@ -420,12 +459,13 @@ describe('useFlagging Hook', () => {
       });
 
       expect(supabase.rpc).toHaveBeenCalledWith('get_paginated_flags', {
+        p_organization_id: 'test-org-id',
         p_limit: 20,
         p_offset: 0,
         p_status: null,
         p_table_name: null,
-        p_severity: null,
         p_search: null,
+        p_severity: null,
         p_sort_by: 'created_at',
         p_sort_dir: 'desc',
       });
@@ -463,12 +503,13 @@ describe('useFlagging Hook', () => {
       });
 
       expect(supabase.rpc).toHaveBeenCalledWith('get_paginated_flags', {
+        p_organization_id: 'test-org-id',
         p_limit: 50,
         p_offset: 100,
         p_status: 'open',
         p_table_name: 'books',
-        p_severity: 'high',
         p_search: 'test search',
+        p_severity: 'high',
         p_sort_by: 'severity',
         p_sort_dir: 'asc',
       });

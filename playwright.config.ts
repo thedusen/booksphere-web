@@ -34,7 +34,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true, // Always reuse existing server for local development
     timeout: 120_000, // Longer timeout for dev server to start with cloud Supabase
   },
 }); 

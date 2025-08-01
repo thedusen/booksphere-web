@@ -6,7 +6,7 @@ export default function DashboardPage() {
     return (
         <div className="p-8">
             <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Manage Inventory Card */}
                 <Link href="/inventory" className="group">
                     <Card className="p-8 h-full cursor-pointer transition-shadow group-hover:shadow-xl">
@@ -16,6 +16,17 @@ export default function DashboardPage() {
                         </p>
                     </Card>
                 </Link>
+                
+                {/* Cataloging Jobs Card */}
+                <Link href="/cataloging" className="group">
+                    <Card className="p-8 h-full cursor-pointer transition-shadow group-hover:shadow-xl">
+                        <h2 className="text-2xl font-semibold mb-2">Cataloging Jobs</h2>
+                        <p className="text-gray-600 dark:text-gray-300">
+                            Monitor and review book cataloging jobs. Process AI-extracted data and finalize new inventory items.
+                        </p>
+                    </Card>
+                </Link>
+                
                 {/* View Reports Card (placeholder) */}
                 <Card className="p-8 h-full opacity-70 cursor-not-allowed">
                     <h2 className="text-2xl font-semibold mb-2">View Reports</h2>
