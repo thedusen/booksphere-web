@@ -17,40 +17,9 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 
-export default tseslint.config(
+export default [
   {
-    ignores: [".next/**"],
+    ignores: [".next/**", "supabase/functions/**/*"],
   },
-  {
-    files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
-    plugins: {
-      "@typescript-eslint": tseslint.plugin,
-      "react-refresh": reactRefresh,
-    },
-    languageOptions: {
-      parser: tseslint.parser,
-      parserOptions: {
-        project: true,
-      },
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
-    },
-    rules: {
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
-      ],
-    },
-  },
-  {
-    // Vitest configuration
-    files: ["src/**/*.test.{ts,tsx}", "e2e/**/*.spec.ts"],
-    ...vitest.configs.recommended,
-    rules: {
-        ...vitest.configs.recommended.rules,
-        "vitest/expect-expect": "off",
-    }
-  }
-);
+  ...eslintConfig,
+];

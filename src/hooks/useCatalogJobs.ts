@@ -58,12 +58,15 @@ import {
   catalogingJobCreateRequestSchema, 
   catalogingJobFinalizeRequestSchema, 
   catalogingJobFiltersSchema,
+  reviewWizardDraftSchema,
   formatValidationErrors,
   CatalogingJobFilters,
+  ReviewWizardDraft,
+  Contributor,
   sanitizeBookMetadata
 } from '@/lib/validators/cataloging';
 import { toast } from 'sonner';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 // ============================================================================
 // CACHE KEY FACTORIES
@@ -256,39 +259,41 @@ const catalogingJobOptimisticUpdates = {
     orgId: string,
     jobIds: string[]
   ) => {
+    const jobIdSet = new Set(jobIds);
+
+    // Update list queries
     queryClient.setQueriesData(
       { queryKey: catalogingJobKeys.lists() },
       (old: CatalogingJobListResponse | undefined) => {
         if (!old) return old;
+        const newJobs = old.jobs.filter(job => !jobIdSet.has(job.job_id));
         return {
           ...old,
-          jobs: old.jobs.filter(job => !jobIds.includes(job.job_id)),
-          total_count: Math.max(0, old.total_count - jobIds.length),
+          jobs: newJobs,
+          total_count: old.total_count - (old.jobs.length - newJobs.length),
         };
       }
     );
 
-    // Also update infinite queries
+    // Update infinite queries
     queryClient.setQueriesData(
       { queryKey: catalogingJobKeys.all },
       (old: InfiniteData<CatalogingJobListResponse> | undefined) => {
         if (!old) return old;
         return {
           ...old,
-          pages: old.pages.map(page => ({
-            ...page,
-            jobs: page.jobs.filter(job => !jobIds.includes(job.job_id)),
-            total_count: Math.max(0, page.total_count - jobIds.length),
-          })),
+          pages: old.pages.map(page => {
+            const newJobs = page.jobs.filter(job => !jobIdSet.has(job.job_id));
+            return {
+              ...page,
+              jobs: newJobs,
+              total_count: page.total_count - (page.jobs.length - newJobs.length),
+            };
+          }),
         };
       }
     );
-
-    // Remove individual job details from cache
-    jobIds.forEach(jobId => {
-      queryClient.removeQueries({ queryKey: catalogingJobKeys.detail(jobId) });
-    });
-  },
+  }
 };
 
 // ============================================================================
@@ -312,84 +317,38 @@ class CatalogingJobError extends Error {
 }
 
 /**
- * Enhanced error handler factory with comprehensive error categorization
- * FIXED: Proper error typing and categorization
+ * Shared error handler for mutations to reduce boilerplate
+ * FIXED: Ensures that thrown errors are always instances of CatalogingJobError
  */
 const createErrorHandler = (operation: string) => {
-  return (error: any): CatalogingJobError => {
-    // Handle Supabase errors
-    if (error?.code) {
-      switch (error.code) {
-        case 'PGRST116':
-          return new CatalogingJobError(
-            `${operation}: Record not found`,
-            'NOT_FOUND',
-            { originalError: error },
-            false
-          );
-        case 'PGRST301':
-          return new CatalogingJobError(
-            `${operation}: Insufficient permissions`,
-            'PERMISSION_DENIED',
-            { originalError: error },
-            false
-          );
-        case '23505':
-          return new CatalogingJobError(
-            `${operation}: Duplicate entry`,
-            'DUPLICATE_ENTRY',
-            { originalError: error },
-            false
-          );
-        case '23503':
-          return new CatalogingJobError(
-            `${operation}: Foreign key constraint violation`,
-            'CONSTRAINT_VIOLATION',
-            { originalError: error },
-            false
-          );
-        default:
-          return new CatalogingJobError(
-            `${operation}: Database error - ${error.message}`,
-            'DATABASE_ERROR',
-            { originalError: error },
-            true
-          );
-      }
-    }
-
-    // Handle network errors
-    if (error?.name === 'NetworkError' || error?.message?.includes('fetch')) {
-      return new CatalogingJobError(
-        `${operation}: Network error`,
-        'NETWORK_ERROR',
-        { originalError: error },
-        true
-      );
-    }
-
-    // Handle validation errors
-    if (error?.name === 'ZodError') {
-      return new CatalogingJobError(
-        `${operation}: Validation error`,
-        'VALIDATION_ERROR',
-        { originalError: error, issues: error.issues },
-        false
-      );
-    }
-
-    // Handle existing CatalogingJobError
+  return (error: Error): CatalogingJobError => {
     if (error instanceof CatalogingJobError) {
+      // Log and re-throw for specific UI handling
+      console.error(`Operation '${operation}' failed with code: ${error.code}`, error.details);
       return error;
     }
+    
+    // Handle zod validation errors
+    if ('issues' in error) {
+      const validationError = new CatalogingJobError(
+        `Invalid input for ${operation}`,
+        'VALIDATION_ERROR',
+        { issues: (error as any).issues },
+        false // Not retryable
+      );
+      console.error('Validation error:', validationError.details);
+      return validationError;
+    }
 
-    // Generic error fallback
-    return new CatalogingJobError(
-      `${operation}: ${error?.message || 'Unknown error'}`,
+    // Handle generic Supabase/network errors
+    const genericError = new CatalogingJobError(
+      `An unexpected error occurred during ${operation}. Please try again.`,
       'UNKNOWN_ERROR',
       { originalError: error },
-      true
+      true // Assume retryable unless specified
     );
+    console.error(`Unexpected error in ${operation}:`, error);
+    return genericError;
   };
 };
 
@@ -413,7 +372,7 @@ const useCatalogingJobsRealtime = (organizationId: string) => {
     [queryClient]
   );
 
-  const handleRealtimeChange = useCallback((payload: any) => {
+  const handleRealtimeChange = useCallback((payload: RealtimePostgresChangesPayload<{ [key: string]: any }>) => {
     try {
       const { eventType, new: newRecord, old: oldRecord } = payload;
 
@@ -905,7 +864,7 @@ export const useCatalogingJob = (jobId: string) => {
 
         return typedJob;
       } catch (error) {
-        throw createErrorHandler('Process cataloging job')(error);
+        throw createErrorHandler('Process cataloging job')(error instanceof Error ? error : new Error(String(error)));
       }
     },
     enabled: !!organizationId && !!jobId,
@@ -917,6 +876,8 @@ export const useCatalogingJob = (jobId: string) => {
       }
       return failureCount < 2;
     },
+    // ✅ FIX: Added placeholderData to prevent UI layout shifts
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -1121,106 +1082,282 @@ export const useCreateCatalogingJob = () => {
   });
 };
 
+// ============================================================================
+// REVIEW WIZARD DRAFT MANAGEMENT
+// ============================================================================
+
 /**
- * Finalize cataloging job mutation
- * FIXED: Proper error handling and validation
+ * Review wizard draft cache key factory
+ */
+const reviewWizardDraftKeys = {
+  all: ['review-wizard-drafts'] as const,
+  draft: (jobId: string) => [...reviewWizardDraftKeys.all, jobId] as const,
+} as const;
+
+/**
+ * Hook for managing review wizard draft state with auto-save
+ * Implements the architectural requirement for 5-second auto-save with partial updates
+ */
+export const useCatalogJobDraft = (jobId: string) => {
+  const queryClient = useQueryClient();
+  const { organizationId } = useOrganization();
+  const [draftData, setDraftData] = useState<Partial<ReviewWizardDraft>>({});
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Auto-save mutation
+  const autoSaveMutation = useMutation({
+    mutationFn: async (draft: Partial<ReviewWizardDraft>) => {
+      // Store draft in localStorage for now (could be extended to server-side storage)
+      const draftKey = `cataloging-draft-${jobId}`;
+      localStorage.setItem(draftKey, JSON.stringify({
+        ...draft,
+        lastSaved: new Date().toISOString(),
+      jobId, 
+      }));
+      return draft;
+    },
+    onSuccess: () => {
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+    },
+    onError: (error) => {
+      console.error('Failed to save draft:', error);
+      toast.error('Failed to save draft automatically');
+    },
+  });
+
+  // Load draft from storage on mount
+  useEffect(() => {
+    const draftKey = `cataloging-draft-${jobId}`;
+    const savedDraft = localStorage.getItem(draftKey);
+    if (savedDraft) {
+      try {
+        const parsed = JSON.parse(savedDraft);
+        setDraftData(parsed);
+        setLastSaved(parsed.lastSaved ? new Date(parsed.lastSaved) : null);
+      } catch (error) {
+        console.error('Failed to parse saved draft:', error);
+      }
+    }
+  }, [jobId]);
+
+  // Auto-save every 5 seconds when there are unsaved changes
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    const autoSaveInterval = setInterval(() => {
+      if (Object.keys(draftData).length > 0) {
+        autoSaveMutation.mutate(draftData);
+      }
+    }, 5000); // 5 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [draftData, hasUnsavedChanges, autoSaveMutation]);
+
+  // Update draft data
+  const updateDraft = useCallback((updates: Partial<ReviewWizardDraft>) => {
+    setDraftData(prev => {
+      const newData = { ...prev, ...updates };
+      setHasUnsavedChanges(true);
+      return newData;
+    });
+  }, []);
+
+  // Validate current draft
+  const validateDraft = useCallback(() => {
+    const result = reviewWizardDraftSchema.safeParse(draftData);
+    return result.success ? { success: true, data: result.data } : { success: false, error: result.error };
+  }, [draftData]);
+
+  // Clear draft
+  const clearDraft = useCallback(() => {
+    const draftKey = `cataloging-draft-${jobId}`;
+    localStorage.removeItem(draftKey);
+    setDraftData({});
+    setLastSaved(null);
+    setHasUnsavedChanges(false);
+  }, [jobId]);
+
+  // Manual save
+  const saveDraft = useCallback(() => {
+    if (Object.keys(draftData).length > 0) {
+      autoSaveMutation.mutate(draftData);
+    }
+  }, [draftData, autoSaveMutation]);
+
+  return {
+    draft: draftData,
+    draftData,
+    updateDraft,
+    validateDraft,
+    clearDraft,
+    saveDraft,
+    lastSaved,
+    hasUnsavedChanges,
+    isSaving: autoSaveMutation.isPending,
+    saveError: autoSaveMutation.error,
+  };
+};
+
+/**
+ * Hook for managing contributors (illustrators, etc.)
+ */
+export const useContributorManagement = (initial: Contributor[] = []) => {
+  const [contributors, setContributors] = useState<Contributor[]>(initial);
+
+  const addContributor = useCallback((newContributor: Contributor) => {
+    setContributors(prev => {
+      const exists = prev.some(c =>
+        c.name.toLowerCase() === newContributor.name.toLowerCase() &&
+        ((c.author_type_id && newContributor.author_type_id && c.author_type_id === newContributor.author_type_id) ||
+         (!c.author_type_id && !newContributor.author_type_id && c.role === newContributor.role))
+      );
+      if (exists) {
+        toast.error('This contributor already exists');
+        return prev;
+      }
+      return [...prev, newContributor];
+    });
+  }, []);
+
+  const removeContributor = useCallback((index: number) => {
+    setContributors(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const updateContributor = useCallback((index: number, updates: Partial<Contributor>) => {
+    setContributors(prev => prev.map((contributor, i) =>
+      i === index ? { ...contributor, ...updates } : contributor
+    ));
+  }, []);
+
+  return {
+    contributors,
+    addContributor,
+    removeContributor,
+    updateContributor,
+  };
+};
+
+export interface SelectedAttribute {
+  attribute_type_id: string;
+  string_value?: string;
+  boolean_value?: boolean;
+  number_value?: number;
+}
+
+export const useAttributeSelection = (initial: SelectedAttribute[] = []) => {
+  const [attributes, setAttributes] = useState<SelectedAttribute[]>(initial);
+
+  const addAttribute = useCallback((attribute: SelectedAttribute) => {
+    setAttributes(prev => {
+      if (prev.length >= 20) {
+        toast.error('Maximum 20 attributes allowed');
+        return prev;
+      }
+      return [...prev, attribute];
+    });
+  }, []);
+
+  const removeAttribute = useCallback((index: number) => {
+    setAttributes(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const updateAttribute = useCallback((index: number, updated: SelectedAttribute) => {
+    setAttributes(prev => prev.map((attr, i) => i === index ? updated : attr));
+  }, []);
+
+  const clearAllAttributes = useCallback(() => setAttributes([]), []);
+
+  return {
+    attributes,
+    addAttribute,
+    removeAttribute,
+    updateAttribute,
+    clearAllAttributes,
+  };
+};
+
+// ============================================================================
+// ENHANCED FINALIZATION HOOK
+// ============================================================================
+
+/**
+ * Enhanced finalization hook that supports the new fields
  */
 export const useFinalizeCatalogingJob = () => {
   const { organizationId } = useOrganization();
   const queryClient = useQueryClient();
+  const errorHandler = createErrorHandler('finalize-cataloging-job');
 
   return useMutation({
-    mutationKey: [getMutationKey('finalize', null, organizationId)],
-    mutationFn: async ({ 
-      jobId, 
-      finalizedData 
-    }: { 
-      jobId: string; 
-      finalizedData: CatalogingJobFinalizeRequest 
-    }) => {
-      if (!organizationId) {
+    mutationKey: ['finalize-cataloging-job'],
+    mutationFn: async (request: CatalogingJobFinalizeRequest) => {
+      // Validate request
+      const validation = catalogingJobFinalizeRequestSchema.safeParse(request);
+      if (!validation.success) {
         throw new CatalogingJobError(
-          'Organization ID is required',
-          'MISSING_ORG_ID',
-          {},
-          false
+          'Invalid finalization request',
+          'VALIDATION_ERROR',
+          { validationErrors: formatValidationErrors(validation.error) }
         );
       }
 
-      // Validate request
-      const validatedData = catalogingJobFinalizeRequestSchema.parse(finalizedData);
+      const validatedRequest = validation.data;
 
-      // Sanitize book metadata - extract book metadata from validated data
-      const bookMetadata: BookMetadata = {
-        title: validatedData.title,
-        subtitle: validatedData.subtitle,
-        authors: validatedData.authors || [],
-        publisher_name: validatedData.publisher_name,
-        publication_year: validatedData.publication_year,
-        publication_location: validatedData.publication_location,
-        edition_statement: validatedData.edition_statement,
-        has_dust_jacket: validatedData.has_dust_jacket,
-      };
-      const sanitizedMetadata = sanitizeBookMetadata(bookMetadata);
-
-      // Call the finalize_cataloging_job RPC
-      const { data, error } = await supabase.rpc('finalize_cataloging_job', {
-        job_id_param: jobId,
-        book_metadata_param: sanitizedMetadata,
-        condition_param: validatedData.condition_id,
-        price_param: validatedData.price,
-        notes_param: validatedData.condition_notes || null,
-      });
+      // Call the enhanced add_edition_to_inventory RPC
+      const { data, error } = await supabase
+        .rpc('add_edition_to_inventory', {
+          p_organization_id: organizationId,
+          p_job_id: validatedRequest.job_id,
+          p_title: validatedRequest.title,
+          p_subtitle: validatedRequest.subtitle,
+          p_authors: validatedRequest.authors,
+          p_illustrators: validatedRequest.illustrators?.map(i => ({
+            name: i.name,
+            author_type_id: i.author_type_id,
+            role: i.role,
+          })),
+          p_publisher_name: validatedRequest.publisher_name,
+          p_publisher_location_id: validatedRequest.publisher_location_id,
+          p_publisher_location_text: validatedRequest.publisher_location_text,
+          p_publication_year: validatedRequest.publication_year,
+          p_edition_statement: validatedRequest.edition_statement,
+          p_format_id: validatedRequest.format_id,
+          p_pagination_text: validatedRequest.pagination_text,
+          p_condition_id: validatedRequest.condition_id,
+          p_price: validatedRequest.price,
+          p_has_dust_jacket: validatedRequest.has_dust_jacket,
+          p_sku: validatedRequest.sku,
+          p_condition_notes: validatedRequest.condition_notes,
+          p_selected_attributes: validatedRequest.selected_attributes,
+          p_matched_edition_id: validatedRequest.matched_edition_id,
+          p_create_new_edition: validatedRequest.create_new_edition,
+        });
 
       if (error) {
-        throw createErrorHandler('Finalize cataloging job')(error);
+        throw new CatalogingJobError(
+          'Failed to finalize cataloging job',
+          'FINALIZATION_ERROR',
+          { supabaseError: error }
+        );
       }
 
       return data;
     },
-    onMutate: async ({ jobId }) => {
-      if (!organizationId) return;
+    onSuccess: (data, variables) => {
+      // Clear draft on successful finalization
+      const draftKey = `cataloging-draft-${variables.job_id}`;
+      localStorage.removeItem(draftKey);
 
-      // FIXED: Optimistically update job status and clear error message
-      catalogingJobOptimisticUpdates.updateJobStatus(
-        queryClient,
-        jobId,
-        organizationId,
-        'completed',
-        null // Clear any previous error message
-      );
-
-      return { jobId };
-    },
-    onSuccess: (data, { jobId }) => {
-      if (!organizationId) return;
-
-      // Invalidate and refetch job data
-      queryClient.invalidateQueries({ queryKey: catalogingJobKeys.detail(jobId) });
-      queryClient.invalidateQueries({ queryKey: catalogingJobKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: catalogingJobKeys.stats(organizationId) });
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: catalogingJobKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
       
-      toast.success('Cataloging job finalized successfully');
+      // Show success message
+      toast.success('Book successfully added to inventory!');
     },
-    onError: (error, { jobId }) => {
-      if (!organizationId) return;
-
-      // Revert optimistic update
-      queryClient.invalidateQueries({ queryKey: catalogingJobKeys.detail(jobId) });
-      queryClient.invalidateQueries({ queryKey: catalogingJobKeys.lists() });
-
-      const errorMessage = error instanceof CatalogingJobError 
-        ? error.message 
-        : 'Failed to finalize cataloging job';
-      
-      toast.error(errorMessage);
-    },
-    retry: (failureCount, error) => {
-      if (error instanceof CatalogingJobError && !error.retryable) {
-        return false;
-      }
-      return failureCount < 2;
-    },
+    onError: errorHandler,
   });
 };
 

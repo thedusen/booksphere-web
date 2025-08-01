@@ -14,7 +14,7 @@ import { usePaginatedFlags, useUpdateFlagStatus, type PaginatedFlag } from '@/ho
 /**
  * Helper functions to safely render unknown values
  */
-const renderSuggestedValue = (value: unknown): string => {
+const renderSuggestedValue = (value: unknown): React.ReactNode => {
   if (!value) return 'N/A';
   if (typeof value === 'string') return value;
   try {
@@ -24,7 +24,7 @@ const renderSuggestedValue = (value: unknown): string => {
   }
 };
 
-const renderDetails = (details: unknown): string => {
+const renderDetails = (details: unknown): React.ReactNode => {
   if (!details) return 'N/A';
   try {
     return JSON.stringify(details, null, 2);
@@ -362,7 +362,7 @@ export default function AdminFlagsPage() {
                 <p className="mt-1 text-muted-foreground">{selectedFlag.description}</p>
               </div>
               
-              {selectedFlag.suggested_value && (
+              {selectedFlag.suggested_value !== null && selectedFlag.suggested_value !== undefined && (
                 <div>
                   <strong>Suggested Value:</strong>
                                     <p className="mt-1 font-mono text-sm bg-muted p-2 rounded">
@@ -371,7 +371,7 @@ export default function AdminFlagsPage() {
                 </div>
               )}
               
-              {selectedFlag.details && (
+              {selectedFlag.details !== null && selectedFlag.details !== undefined && (
                 <div>
                   <strong>Additional Details:</strong>
                                     <pre className="mt-1 text-xs bg-muted p-2 rounded overflow-x-auto">
