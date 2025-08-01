@@ -28,6 +28,7 @@ export const bookMetadataSchema = z.object({
   edition_statement: z.string().max(100, 'Edition statement must be less than 100 characters').optional(),
   
   // Physical characteristics
+  isbn: z.string().max(20, 'ISBN must be less than 20 characters').optional(),
   isbn13: isbn13Schema,
   isbn10: isbn10Schema,
   page_count: z.number().int().min(1, 'Page count must be at least 1').max(10000, 'Page count cannot exceed 10,000').optional(),
@@ -62,6 +63,83 @@ export const bookMetadataSchema = z.object({
   }).optional(),
 });
 
+// Contributor validation schema for illustrators and other contributors
+export const contributorSchema = z.object({
+  name: z.string().min(1, 'Contributor name is required').max(255, 'Contributor name must be less than 255 characters'),
+  author_type_id: z.string().uuid('Author type ID must be a valid UUID').optional(),
+  role: z.string().max(100, 'Role must be less than 100 characters').optional(),
+});
+
+// Extended book metadata schema for review wizard
+export const extendedBookMetadataSchema = bookMetadataSchema.extend({
+  // New fields for review wizard
+  illustrators: z.array(contributorSchema).max(10, 'Maximum 10 illustrators allowed').optional(),
+  publisher_location_id: z.string().uuid('Publisher location ID must be a valid UUID').optional(),
+  publisher_location_text: z.string().max(255, 'Publisher location text must be less than 255 characters').optional(),
+  format_id: z.string().uuid('Format ID must be a valid UUID').optional(),
+  pagination_text: z.string().max(100, 'Pagination text must be less than 100 characters').optional(),
+  selected_attributes: z.array(z.string().uuid('Attribute ID must be a valid UUID')).max(20, 'Maximum 20 attributes allowed').optional(),
+}).refine(data => {
+  // Either publisher_location_id or publisher_location_text should be provided, not both
+  if (data.publisher_location_id && data.publisher_location_text) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Provide either publisher location ID or text, not both',
+  path: ['publisher_location_text'],
+});
+
+// Review wizard draft schema
+export const reviewWizardDraftSchema = z.object({
+  // Step 1: Bibliographic data
+  title: z.string().min(1, 'Title is required').max(500, 'Title must be less than 500 characters'),
+  subtitle: z.string().max(500, 'Subtitle must be less than 500 characters').optional(),
+  authors: z.array(z.string().min(1, 'Author name cannot be empty')).max(10, 'Maximum 10 authors allowed').optional(),
+  illustrators: z.array(contributorSchema).max(10, 'Maximum 10 illustrators allowed').optional(),
+  publisher_name: z.string().max(255, 'Publisher name must be less than 255 characters').optional(),
+  publisher_location_id: z.string().uuid('Publisher location ID must be a valid UUID').optional(),
+  publisher_location_text: z.string().max(255, 'Publisher location text must be less than 255 characters').optional(),
+  publication_year: z.number().int().min(1000, 'Publication year must be after 1000').max(new Date().getFullYear() + 5, 'Publication year cannot be more than 5 years in the future').optional(),
+  isbn13: isbn13Schema,
+  isbn10: isbn10Schema,
+  
+  // Step 2: Physical details
+  format_id: z.string().uuid('Format ID must be a valid UUID').optional(),
+  pagination_text: z.string().max(100, 'Pagination text must be less than 100 characters').optional(),
+  page_count: z.number().int().min(1, 'Page count must be at least 1').max(10000, 'Page count cannot exceed 10,000').optional(),
+  language_name: z.string().max(100, 'Language name must be less than 100 characters').optional(),
+  edition_statement: z.string().max(100, 'Edition statement must be less than 100 characters').optional(),
+  
+  // Step 3: Attributes and condition
+  selected_attributes: z.array(z.string().uuid('Attribute ID must be a valid UUID')).max(20, 'Maximum 20 attributes allowed').optional(),
+  condition_assessment: z.string().max(500, 'Condition assessment must be less than 500 characters').optional(),
+  has_dust_jacket: z.boolean().optional(),
+  
+  // Step 4: Pricing and finalization
+  condition_id: z.string().uuid('Condition ID must be a valid UUID').optional(),
+  price: z.number().min(0.01, 'Price must be at least $0.01').max(99999.99, 'Price cannot exceed $99,999.99').optional(),
+  sku: z.string().max(100, 'SKU must be less than 100 characters').optional(),
+  condition_notes: z.string().max(1000, 'Condition notes must be less than 1000 characters').optional(),
+  
+  // Additional metadata
+  description: z.string().max(2000, 'Description must be less than 2000 characters').optional(),
+  notes: z.string().max(1000, 'Notes must be less than 1000 characters').optional(),
+  
+  // Edition matching
+  matched_edition_id: z.string().uuid('Matched edition ID must be a valid UUID').optional(),
+  create_new_edition: z.boolean().optional(),
+}).refine(data => {
+  // Either publisher_location_id or publisher_location_text should be provided, not both
+  if (data.publisher_location_id && data.publisher_location_text) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Provide either publisher location ID or text, not both',
+  path: ['publisher_location_text'],
+});
+
 // Image URLs validation schema
 export const catalogingJobImageUrlsSchema = z.object({
   cover_url: z.string().url('Cover URL must be a valid URL').optional(),
@@ -90,23 +168,40 @@ export const catalogingJobFinalizeRequestSchema = z.object({
   condition_id: z.string().uuid('Condition ID must be a valid UUID'),
   price: z.number().min(0.01, 'Price must be at least $0.01').max(99999.99, 'Price cannot exceed $99,999.99'),
   
-  // Optional fields
+  // Optional fields (updated to include new fields)
+  isbn: z.string().max(20, 'ISBN must be less than 20 characters').optional(),
   subtitle: z.string().max(500, 'Subtitle must be less than 500 characters').optional(),
   authors: z.array(z.string().min(1, 'Author name cannot be empty')).max(10, 'Maximum 10 authors allowed').optional(),
+  illustrators: z.array(contributorSchema).max(10, 'Maximum 10 illustrators allowed').optional(),
   publisher_name: z.string().max(255, 'Publisher name must be less than 255 characters').optional(),
+  publisher_location_id: z.string().uuid('Publisher location ID must be a valid UUID').optional(),
+  publisher_location_text: z.string().max(255, 'Publisher location text must be less than 255 characters').optional(),
   publication_year: z.number().int().min(1000, 'Publication year must be after 1000').max(new Date().getFullYear() + 5, 'Publication year cannot be more than 5 years in the future').optional(),
   publication_location: z.string().max(255, 'Publication location must be less than 255 characters').optional(),
   edition_statement: z.string().max(100, 'Edition statement must be less than 100 characters').optional(),
+  format_id: z.string().uuid('Format ID must be a valid UUID').optional(),
+  pagination_text: z.string().max(100, 'Pagination text must be less than 100 characters').optional(),
   has_dust_jacket: z.boolean().optional(),
   sku: z.string().max(100, 'SKU must be less than 100 characters').optional(),
   condition_notes: z.string().max(1000, 'Condition notes must be less than 1000 characters').optional(),
   selected_attributes: z.array(z.string().uuid('Attribute ID must be a valid UUID')).max(20, 'Maximum 20 attributes allowed').optional(),
+  matched_edition_id: z.string().uuid('Matched edition ID must be a valid UUID').optional(),
+  create_new_edition: z.boolean().optional(),
+}).refine(data => {
+  // Either publisher_location_id or publisher_location_text should be provided, not both
+  if (data.publisher_location_id && data.publisher_location_text) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Provide either publisher location ID or text, not both',
+  path: ['publisher_location_text'],
 });
 
 // Cataloging job list filters validation
 export const catalogingJobFiltersSchema = z.object({
   status: catalogingJobStatusSchema.optional(),
-  source_type: z.enum(['isbn_scan', 'manual_isbn', 'image_capture']).optional(),
+  source_type: z.enum(['isbn_scan', 'manual_isbn', 'image_capture', 'manual']).optional(),
   date_from: z.string().datetime({ message: 'Date from must be a valid ISO datetime' }).optional(),
   date_to: z.string().datetime({ message: 'Date to must be a valid ISO datetime' }).optional(),
   user_id: z.string().uuid('User ID must be a valid UUID').optional(),
@@ -168,8 +263,11 @@ export const catalogingJobBulkRetrySchema = z.object({
   job_ids: z.array(z.string().uuid('Job ID must be a valid UUID')).min(1, 'At least one job ID is required').max(CATALOGING_DEFAULTS.MAX_BULK_RETRY, `Maximum ${CATALOGING_DEFAULTS.MAX_BULK_RETRY} jobs can be retried at once`),
 });
 
-// Type inference for use in components
+// Type inference for use in components (updated)
 export type BookMetadata = z.infer<typeof bookMetadataSchema>;
+export type ExtendedBookMetadata = z.infer<typeof extendedBookMetadataSchema>;
+export type ReviewWizardDraft = z.infer<typeof reviewWizardDraftSchema>;
+export type Contributor = z.infer<typeof contributorSchema>;
 export type CatalogingJobImageUrls = z.infer<typeof catalogingJobImageUrlsSchema>;
 export type CatalogingJobCreateRequest = z.infer<typeof catalogingJobCreateRequestSchema>;
 export type CatalogingJobFinalizeRequest = z.infer<typeof catalogingJobFinalizeRequestSchema>;
@@ -235,4 +333,20 @@ export function sanitizeBookMetadata(metadata: BookMetadata): BookMetadata {
     condition_assessment: metadata.condition_assessment?.trim(),
     table_of_contents: metadata.table_of_contents?.map(item => item.trim()).filter(Boolean),
   };
+} 
+
+// New validation functions for extended schemas
+export function validateExtendedBookMetadata(data: unknown): { success: true; data: ExtendedBookMetadata } | { success: false; error: z.ZodError } {
+  const result = extendedBookMetadataSchema.safeParse(data);
+  return result.success ? { success: true, data: result.data } : { success: false, error: result.error };
+}
+
+export function validateReviewWizardDraft(data: unknown): { success: true; data: ReviewWizardDraft } | { success: false; error: z.ZodError } {
+  const result = reviewWizardDraftSchema.safeParse(data);
+  return result.success ? { success: true, data: result.data } : { success: false, error: result.error };
+}
+
+export function validateContributor(data: unknown): { success: true; data: Contributor } | { success: false; error: z.ZodError } {
+  const result = contributorSchema.safeParse(data);
+  return result.success ? { success: true, data: result.data } : { success: false, error: result.error };
 } 
