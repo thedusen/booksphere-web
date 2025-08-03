@@ -78,7 +78,7 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
 
     return (
         <>
-            <div className="rounded-xl border border-primary/10 shadow-elevation-3 bg-gradient-to-br from-background/98 to-lavender-50/30 overflow-hidden backdrop-blur-[1px]">
+            <div className="rounded-xl border border-primary/10 shadow-elevation-3 bg-gradient-to-br from-background/98 to-lavender-50/30 overflow-hidden backdrop-blur-[1px] inventory-table">
             <Table>
                 <TableHeader>
                     <TableRow className="bg-gradient-to-r from-primary/8 to-secondary/8 border-b border-primary/20 hover:bg-gradient-to-r hover:from-primary/12 hover:to-secondary/12 transition-all animate-spring">

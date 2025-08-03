@@ -317,3 +317,46 @@ button[data-slot="button"] {
 .apply-filters-button {
   color: white !important;
 }
+
+/* Fix the wrapper div border that's showing as black */
+.inventory-table {
+  border-color: rgb(147 51 234 / 0.1) !important;
+}
+
+/* Override Tailwind's problematic border color defaults globally */
+.border-primary\/15 {
+  border-color: rgb(147 51 234 / 0.15) !important;
+}
+
+.border-primary\/20 {
+  border-color: rgb(147 51 234 / 0.20) !important;
+}
+
+.border-primary\/10 {
+  border-color: rgb(147 51 234 / 0.10) !important;
+}
+
+/* Global fix for table row borders to use neutral colors instead of black */
+tr[class*="border-b"] {
+  border-bottom-color: rgb(229 231 235 / 0.8) !important;
+}
+
+/* Specifically target inventory table rows for consistent pale grey borders */
+.inventory-table tr {
+  border-bottom-color: rgb(229 231 235 / 0.6) !important;
+}
+
+/* Fix divide-y borders that appear black in stock item sections */
+.divide-y > * + * {
+  border-top-color: rgb(229 231 235 / 0.6) !important;
+}
+
+/* Specifically target stock item dividers */
+.inventory-table .divide-y > * + * {
+  border-top-color: rgb(229 231 235 / 0.6) !important;
+}
+
+/* Override divide-primary classes */
+.divide-primary\/10 > * + * {
+  border-top-color: rgb(147 51 234 / 0.10) !important;
+}
