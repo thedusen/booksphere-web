@@ -114,3 +114,8 @@ npm run lint         # Run ESLint
 - **Authorization**: RLS policies enforce access control
 - **Validation**: Zod schemas for all user input
 - **Sanitization**: Server-side validation in edge functions
+
+## Development Memories
+
+- Start and find the development server at http://localhost:3001/
+- Start the server with npm run dev

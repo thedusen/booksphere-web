@@ -14,7 +14,6 @@ import {
 import type { GroupedEditionWithDate } from "@/hooks/useInventory";
 import { StockItemRow } from "./StockItemRow";
 import { InventoryItemContextMenu } from "./InventoryItemContextMenu";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import * as AlertDialog from "@/components/ui/alert-dialog";
 import Link from "next/link";
@@ -36,11 +35,15 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
 
     // Effect: when lastViewedEditionId changes, trigger highlight
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
         if (lastViewedEditionId) {
             setHighlightedId(lastViewedEditionId);
             const timer = setTimeout(() => {
                 setHighlightedId(null);
-                sessionStorage.removeItem('lastViewedEditionId');
+                if (typeof window !== 'undefined') {
+                    sessionStorage.removeItem('lastViewedEditionId');
+                }
             }, 3000);
             return () => clearTimeout(timer);
         }
@@ -50,12 +53,12 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
         setExpandedRows((prev) => ({ ...prev, [editionId]: !prev[editionId] }));
     }
 
-    function handleEdit(editionId: string): void {}
+    function handleEdit(_editionId: string): void {}
     function handleDeleteClick(edition: GroupedEditionWithDate): void {
         setItemToDelete(edition);
     }
-    function handleManagePhotos(editionId: string): void {}
-    function handleListOnMarketplace(editionId: string): void {}
+    function handleManagePhotos(_editionId: string): void {}
+    function handleListOnMarketplace(_editionId: string): void {}
     function handleDeleteConfirm(): void {
         // TODO: Call Supabase RPC to delete edition_id: itemToDelete.edition_id
         setItemToDelete(null);
@@ -71,20 +74,22 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
         return <div className="py-8 text-center text-muted-foreground">No inventory found.</div>;
     }
 
-    const columnCount = 6;
+    const columnCount = 7;
 
     return (
         <>
+            <div className="rounded-xl border border-primary/10 shadow-elevation-3 bg-gradient-to-br from-background/98 to-lavender-50/30 overflow-hidden backdrop-blur-[1px]">
             <Table>
                 <TableHeader>
-                    <TableRow>
+                    <TableRow className="bg-gradient-to-r from-primary/8 to-secondary/8 border-b border-primary/20 hover:bg-gradient-to-r hover:from-primary/12 hover:to-secondary/12 transition-all animate-spring">
                         <TableHead className="w-8" />
                         <TableHead className="w-10">
-                            <input type="checkbox" aria-label="Select all" onClick={e => e.stopPropagation()} />
+                            <input type="checkbox" aria-label="Select all" onClick={e => e.stopPropagation()} className="rounded border-primary/30 text-primary focus:ring-primary/50 focus:ring-2 hover:border-primary/50 transition-all animate-spring" />
                         </TableHead>
                         <TableHead>Book</TableHead>
                         <TableHead>ISBN</TableHead>
-                        <TableHead>Stock</TableHead>
+                        <TableHead className="text-center">Stock</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
                         <TableHead className="w-8" />
                     </TableRow>
                 </TableHeader>
@@ -93,8 +98,8 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
                         <Fragment key={edition.edition_id}>
                             <TableRow
                                 className={cn(
-                                    "cursor-pointer hover:bg-muted/50 transition-colors",
-                                    highlightedId === edition.edition_id && "animate-fade-highlight bg-purple-100"
+                                    "cursor-pointer transition-all animate-spring hover:bg-gradient-to-r hover:from-primary/8 hover:to-secondary/8 hover:shadow-elevation-1 border-b border-primary/15 group",
+                                    highlightedId === edition.edition_id && "animate-fade-highlight bg-gradient-to-r from-primary/15 to-secondary/15 shadow-elevation-2"
                                 )}
                                 onClick={() => toggleRowExpansion(edition.edition_id)}
                                 tabIndex={0}
@@ -107,8 +112,9 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
                                         size="icon"
                                         aria-label={expandedRows[edition.edition_id] ? "Collapse row" : "Expand row"}
                                         onClick={e => { e.stopPropagation(); toggleRowExpansion(edition.edition_id); }}
+                                        className="rounded-full h-8 w-8 hover:bg-gradient-to-r hover:from-primary/15 hover:to-secondary/15 transition-all animate-spring group-hover:shadow-elevation-1"
                                     >
-                                        {expandedRows[edition.edition_id] ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                        {expandedRows[edition.edition_id] ? <ChevronDown size={18} className="text-primary" /> : <ChevronRight size={18} className="text-muted-foreground group-hover:text-primary transition-colors" />}
                                     </Button>
                                 </TableCell>
                                 <TableCell>
@@ -116,18 +122,19 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
                                         type="checkbox"
                                         aria-label={`Select ${edition.title}`}
                                         onClick={e => e.stopPropagation()}
+                                        className="rounded border-primary/30 text-primary focus:ring-primary/50 focus:ring-2 hover:border-primary/50 transition-all animate-spring"
                                     />
                                 </TableCell>
                                 <TableCell>
                                     <Link href={`/inventory/${edition.edition_id}`}>
-                                        <div className="flex items-center gap-3 hover:underline">
+                                        <div className="flex items-center gap-3 hover:text-primary transition-colors animate-spring">
                                             {edition.cover_image_url && (
                                                 <Image
                                                     src={edition.cover_image_url}
                                                     alt={edition.title || 'Book cover'}
                                                     width={40}
                                                     height={60}
-                                                    className="rounded shadow-sm object-cover"
+                                                    className="rounded-lg shadow-elevation-2 object-cover border border-neutral-200/40 hover:shadow-elevation-3 transition-all animate-spring"
                                                 />
                                             )}
                                             <div>
@@ -199,15 +206,17 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
                                         "—"
                                     )}
                                 </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        <span>{edition.total_copies}</span>
-                                        {edition.price_range && (
-                                            <Badge variant="outline" className="ml-2 text-xs font-normal">
-                                                ${edition.price_range.min} - ${edition.price_range.max}
-                                            </Badge>
-                                        )}
-                                    </div>
+                                <TableCell className="text-center">
+                                    <span className="font-medium">{edition.total_copies}</span>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    {edition.price_range ? (
+                                        <span className="text-sm font-medium">
+                                            ${Math.min(edition.price_range.min, edition.price_range.max).toFixed(2)} - ${Math.max(edition.price_range.min, edition.price_range.max).toFixed(2)}
+                                        </span>
+                                    ) : (
+                                        <span className="text-muted-foreground text-sm">No price</span>
+                                    )}
                                 </TableCell>
                                 <TableCell>
                                     <div onClick={e => e.stopPropagation()}>
@@ -222,24 +231,30 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
                                 </TableCell>
                             </TableRow>
                             {expandedRows[edition.edition_id] && (
-                                <TableRow className="bg-muted/30">
-                                    <TableCell colSpan={columnCount} className="p-0">
-                                        {edition.stock_items && edition.stock_items.length > 0 ? (
-                                            edition.stock_items.map((item, i) => (
-                                                <StockItemRow 
-                                                    key={item.stock_item_id} 
-                                                    item={item} 
-                                                    isLast={i === edition.stock_items.length - 1}
-                                                    bookContext={{
-                                                        editionId: edition.edition_id,
-                                                        title: edition.title,
-                                                        primaryAuthor: edition.primary_author,
-                                                    }}
-                                                />
-                                            ))
-                                        ) : (
-                                            <div className="text-sm text-muted-foreground p-4 text-center">No individual stock items for this edition.</div>
-                                        )}
+                                <TableRow className="bg-gradient-to-r from-lavender-50/40 to-secondary/5">
+                                    <TableCell colSpan={columnCount} className="p-0 border-0">
+                                        <div className="bg-gradient-to-r from-primary/8 to-secondary/8 mx-2 my-1 rounded-lg shadow-elevation-1">
+                                            {edition.stock_items && edition.stock_items.length > 0 ? (
+                                                <div className="divide-y divide-primary/10">
+                                                    {edition.stock_items.map((item) => (
+                                                        <div key={item.stock_item_id} className="px-lg py-md first:pt-lg last:pb-lg">
+                                                            <StockItemRow 
+                                                                item={item} 
+                                                                bookContext={{
+                                                                    editionId: edition.edition_id,
+                                                                    title: edition.title,
+                                                                    primaryAuthor: edition.primary_author,
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-sm text-muted-foreground py-xl px-lg text-center italic">
+                                                    No individual stock items for this edition.
+                                                </div>
+                                            )}
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -247,6 +262,7 @@ export function InventoryListTable({ data, isLoading, error, lastViewedEditionId
                     ))}
                 </TableBody>
             </Table>
+            </div>
             <AlertDialog.AlertDialog open={!!itemToDelete} onOpenChange={open => { if (!open) setItemToDelete(null); }}>
                 <AlertDialog.AlertDialogContent>
                     <AlertDialog.AlertDialogHeader>

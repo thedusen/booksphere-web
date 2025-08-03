@@ -9,7 +9,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Sidebar />
             <main
                 ref={scrollContainerRef}
-                className="flex-1 bg-white p-8 overflow-auto"
+                className="flex-1 bg-gradient-page min-h-screen overflow-auto"
             >
                 {children}
             </main>

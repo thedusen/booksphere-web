@@ -1,0 +1,10 @@
+{"arguments":{"url":"http://localhost:3001"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-02 00:07:18.098","tool":"puppeteer_navigate"}
+{"level":"info","message":"Navigating to URL","service":"mcp-puppeteer","timestamp":"2025-08-02 00:07:18.101","url":"http://localhost:3001"}
+{"error":"net::ERR_CONNECTION_REFUSED at http://localhost:3001","level":"error","message":"Navigation failed","service":"mcp-puppeteer","timestamp":"2025-08-02 00:07:18.140","url":"http://localhost:3001"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-02 08:49:00.387"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-02 08:49:00.388"}
+{"arguments":{"url":"http://localhost:3001/inventory"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-02 14:55:20.389","tool":"puppeteer_navigate"}
+{"level":"info","message":"Navigating to URL","service":"mcp-puppeteer","timestamp":"2025-08-02 14:55:20.389","url":"http://localhost:3001/inventory"}
+{"error":"Attempted to use detached Frame 'E36F4537B769C0173617AE6A2441ACF2'.","level":"error","message":"Navigation failed","service":"mcp-puppeteer","timestamp":"2025-08-02 14:55:20.390","url":"http://localhost:3001/inventory"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-02 20:18:12.375"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-02 20:18:12.376"}

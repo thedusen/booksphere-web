@@ -15,7 +15,7 @@
 'use client';
 
 import React from 'react';
-import { FileX, Search, BookOpen, Smartphone } from 'lucide-react';
+import { Search, BookOpen, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -27,7 +27,7 @@ interface CatalogingEmptyStateProps {
 
 export function CatalogingEmptyState({
   type,
-  onLearnMore,
+  onLearnMore: _onLearnMore,
   onClearFilters,
 }: CatalogingEmptyStateProps) {
   if (type === 'initial') {
@@ -43,19 +43,9 @@ export function CatalogingEmptyState({
             Your cataloging queue is empty
           </h2>
           
-          <p className="text-muted-foreground mb-6 max-w-md">
-            Jobs created from the Booksphere mobile app will appear here, 
-            ready for your review and finalization.
+          <p className="text-muted-foreground mb-6 max-w-lg">
+            Jobs created from the Booksphere mobile app will appear here, ready for your review and finalization.
           </p>
-          
-          <div className="space-y-3">
-            <Button onClick={onLearnMore} variant="default">
-              Learn How to Catalog on Mobile
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Start by scanning book ISBNs or capturing images with the mobile app
-            </p>
-          </div>
         </CardContent>
       </Card>
     );

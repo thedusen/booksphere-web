@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, BookCopy, LogOut, Flag, Shield, BookCheck } from "lucide-react";
+import { BooksphereLogo } from "@/components/ui/icons/BooksphereLogo";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -70,13 +71,15 @@ const Sidebar: React.FC = () => {
     };
 
     return (
-        <aside className="flex flex-col h-screen w-60 bg-gray-900 text-white justify-between py-6 px-4">
+        <aside className="sticky top-0 flex flex-col h-screen w-60 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700 text-white justify-between py-6 px-4 relative overflow-hidden shadow-elevation-3 z-40">
             {/* Top: Logo/Title */}
-            <div>
+            <div className="relative z-10">
                 <div className="mb-8 flex items-center gap-2 text-2xl font-bold tracking-tight">
-                    {/* Replace with SVG logo if available */}
-                    <span>📚</span>
-                    <span>Booksphere</span>
+                    <BooksphereLogo 
+                        size={32} 
+                        className="text-secondary"
+                    />
+                    <span className="gradient-text">Booksphere</span>
                 </div>
                 
                 {/* Main Navigation */}
@@ -87,8 +90,8 @@ const Sidebar: React.FC = () => {
                             asChild 
                             variant="ghost" 
                             className={cn(
-                                "justify-start w-full transition-colors",
-                                isActive && "bg-gray-800 text-white"
+                                "justify-start w-full transition-all animate-spring glass-hover",
+                                isActive && "bg-gradient-to-r from-primary/20 to-secondary/20 text-white glow-aqua border border-secondary/30"
                             )}
                         >
                             <Link 
@@ -103,8 +106,8 @@ const Sidebar: React.FC = () => {
                 </nav>
 
                 {/* Admin Section */}
-                <div className="border-t border-gray-700 pt-4">
-                    <div className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-400">
+                <div className="border-t border-gradient-to-r border-from-primary/30 border-to-secondary/30 pt-4">
+                    <div className="flex items-center gap-2 mb-3 text-sm font-medium text-secondary">
                         <Shield className="h-4 w-4" />
                         <span>Administration</span>
                     </div>
@@ -115,8 +118,8 @@ const Sidebar: React.FC = () => {
                                 asChild 
                                 variant="ghost" 
                                 className={cn(
-                                    "justify-start w-full transition-colors",
-                                    isActive && "bg-gray-800 text-white"
+                                    "justify-start w-full transition-all animate-spring glass-hover",
+                                    isActive && "bg-gradient-to-r from-primary/20 to-secondary/20 text-white glow-aqua border border-secondary/30"
                                 )}
                             >
                                 <Link 
@@ -133,10 +136,10 @@ const Sidebar: React.FC = () => {
             </div>
             
             {/* Bottom: Sign Out */}
-            <div data-testid="user-menu">
+            <div data-testid="user-menu" className="relative z-10">
                 <Button 
                     variant="ghost" 
-                    className="justify-start w-full hover:bg-red-600/20 hover:text-red-200 transition-colors"
+                    className="justify-start w-full hover:bg-gradient-to-r hover:from-destructive/20 hover:to-coral-500/20 hover:text-destructive transition-all animate-spring glass-hover"
                     aria-label="Sign out of your account"
                     onClick={handleSignOut}
                 >

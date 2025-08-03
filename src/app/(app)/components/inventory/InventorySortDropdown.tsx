@@ -40,7 +40,7 @@ export const InventorySortDropdown: React.FC<InventorySortDropdownProps> = ({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline">
+                <Button variant="ghost" className="shadow-elevation-2 hover-scale-sm bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/30 hover:border-primary/50 hover:bg-gradient-to-r hover:from-primary/20 hover:to-secondary/20 transition-all animate-spring glow-aqua text-primary hover:text-white">
                     <ArrowUpDown className="mr-2 h-4 w-4" />
                     Sort
                 </Button>

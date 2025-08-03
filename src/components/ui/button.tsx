@@ -5,27 +5,32 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium animate-spring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.98]",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+          "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-elevation-2 hover:shadow-elevation-3 hover:from-primary/90 hover:to-accent/90 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-white/0 before:opacity-0 hover:before:opacity-100 before:transition-opacity",
         destructive:
-          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-gradient-to-r from-destructive to-destructive/80 text-white shadow-elevation-2 hover:shadow-elevation-3 hover:from-destructive/90 hover:to-destructive/70 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border-2 bg-background shadow-elevation-1 hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 hover:border-primary hover:text-primary hover:shadow-elevation-2 dark:bg-background/50 dark:border-border dark:hover:border-primary gradient-border",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+          "bg-gradient-to-r from-secondary to-secondary/80 text-secondary-foreground shadow-elevation-2 hover:shadow-elevation-3 hover:from-secondary/90 hover:to-secondary/70",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+          "hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:text-primary glass-hover",
+        link: "text-primary underline-offset-4 hover:underline hover:text-secondary",
+        primary:
+          "bg-gradient-to-r from-primary via-accent to-secondary text-primary-foreground shadow-elevation-2 hover:shadow-elevation-3 hover:shadow-primary/20 glow-purple",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
+        // Enhanced with proper touch targets (44px minimum)
+        default: "h-touch-target px-md py-sm has-[>svg]:px-sm", // 44px height
+        sm: "h-10 rounded-md gap-xs px-sm has-[>svg]:px-xs", // 40px height (still acceptable)
+        lg: "h-12 rounded-lg px-lg has-[>svg]:px-md", // 48px height (better for touch)
+        icon: "size-touch-target", // 44px x 44px
+        "icon-sm": "size-10", // 40px x 40px
+        "icon-lg": "size-12", // 48px x 48px
       },
     },
     defaultVariants: {
