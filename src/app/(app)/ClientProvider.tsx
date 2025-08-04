@@ -15,6 +15,13 @@ export default function ClientProvider({ children }: { children: React.ReactNode
       queries: {
         staleTime: 1000 * 60 * 5, // 5 minutes
         retry: 1,
+        // Prevent queries from refetching on window focus by default
+        // This helps avoid unnecessary re-authentication loops
+        refetchOnWindowFocus: false,
+        // Only refetch on mount if data is older than staleTime
+        refetchOnMount: 'if-stale',
+        // Don't refetch when reconnecting unless data is stale
+        refetchOnReconnect: 'if-stale',
       },
     },
   }));

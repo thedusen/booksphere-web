@@ -106,6 +106,10 @@ export const useInventory = (
     enabled: !!organizationId && !!client,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+    // Prevent automatic refetching on navigation/tab focus
+    refetchOnWindowFocus: false,
+    refetchOnMount: 'if-stale',
+    refetchOnReconnect: 'if-stale'
   });
 };
 
@@ -139,6 +143,10 @@ export const useInventorySummaryMetrics = ({
     enabled: !!organizationId && !!client,
     staleTime: 3 * 60 * 1000, // 3 minutes
     gcTime: 8 * 60 * 1000, // 8 minutes
+    // Prevent automatic refetching on navigation/tab focus
+    refetchOnWindowFocus: false,
+    refetchOnMount: 'if-stale',
+    refetchOnReconnect: 'if-stale'
   });
 };
 
