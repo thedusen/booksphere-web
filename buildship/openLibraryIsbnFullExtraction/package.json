@@ -1,0 +1,31 @@
+{
+  "name": "buildship",
+  "version": "1.0.0",
+  "description": "Exported buildship workflows",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "mcp": "node dist/mcp.js",
+    "dev": "ts-node index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/firestore": "^7.11.0",
+    "@google-cloud/storage": "^7.15.2",
+    "@modelcontextprotocol/sdk": "^1.7.0",
+    "acorn": "^8.14.1",
+    "dotenv": "^16.4.7",
+    "lodash-es": "^4.17.21",
+    "p-map": "^7.0.3",
+    "typescript": "^5.8.2",
+    "uuid": "^11.1.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.27"
+  }
+}

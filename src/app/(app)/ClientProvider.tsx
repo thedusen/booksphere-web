@@ -19,9 +19,9 @@ export default function ClientProvider({ children }: { children: React.ReactNode
         // This helps avoid unnecessary re-authentication loops
         refetchOnWindowFocus: false,
         // Only refetch on mount if data is older than staleTime
-        refetchOnMount: 'if-stale',
+        refetchOnMount: false,
         // Don't refetch when reconnecting unless data is stale
-        refetchOnReconnect: 'if-stale',
+        refetchOnReconnect: false,
       },
     },
   }));

@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# Buildship exports
+# /buildship/
+
 # production
 /build
 

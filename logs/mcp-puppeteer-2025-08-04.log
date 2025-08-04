@@ -3,3 +3,150 @@
 {"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 10:01:56.410"}
 {"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 10:06:22.521"}
 {"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 10:06:22.522"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 10:22:33.971"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 10:22:33.971"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 10:41:55.895"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 10:41:55.895"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 11:23:29.251"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 11:23:29.251"}
+{"arguments":{"targetUrl":"http://localhost:3001"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:33:12.339","tool":"puppeteer_connect_active_tab"}
+{"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-08-04 11:33:12.340"}
+{"level":"info","message":"Browser launched successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 11:33:13.152"}
+{"level":"info","message":"Connecting to existing browser","service":"mcp-puppeteer","targetUrl":"http://localhost:3001","timestamp":"2025-08-04 11:33:13.172","wsEndpoint":"ws://localhost:9222/devtools/browser/301b8482-1c33-4cdb-b6e8-dfb3c876a38a"}
+{"level":"debug","message":"Establishing connection to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 11:33:13.172"}
+{"level":"info","message":"Successfully connected to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 11:33:13.190"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 11:33:13.227","title":"Create Next App","url":"http://localhost:3001/inventory"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 11:33:13.232","title":"DevTools","url":"devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@7ea839044480a944888296dc0cccc5afb60b736c/&targetType=tab&can_dock=true&panel=elements"}
+{"arguments":{"name":"inventory_page_initial"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:33:18.992","tool":"puppeteer_screenshot"}
+{"arguments":{"name":"inventory_page_loaded"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:33:35.731","tool":"puppeteer_screenshot"}
+{"arguments":{"selector":"a[href=\"/dashboard\"]"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:33:45.065","tool":"puppeteer_click"}
+{"arguments":{"url":"http://localhost:3001/dashboard"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:36:58.683","tool":"puppeteer_navigate"}
+{"level":"info","message":"Navigating to URL","service":"mcp-puppeteer","timestamp":"2025-08-04 11:36:58.684","url":"http://localhost:3001/dashboard"}
+{"error":"net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard","level":"error","message":"Navigation failed","service":"mcp-puppeteer","timestamp":"2025-08-04 11:36:58.760","url":"http://localhost:3001/dashboard"}
+{"arguments":{"url":"http://localhost:3001/login"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:39:22.650","tool":"puppeteer_navigate"}
+{"level":"info","message":"Navigating to URL","service":"mcp-puppeteer","timestamp":"2025-08-04 11:39:22.650","url":"http://localhost:3001/login"}
+{"level":"info","message":"Navigation successful","service":"mcp-puppeteer","status":200,"timestamp":"2025-08-04 11:39:24.537","url":"http://localhost:3001/login"}
+{"arguments":{"name":"login_page"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:39:35.483","tool":"puppeteer_screenshot"}
+{"arguments":{"selector":"input[type=\"email\"]","value":"mitch.driftless@gmail.com"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:39:43.528","tool":"puppeteer_fill"}
+{"arguments":{"selector":"input[type=\"password\"]","value":"yotyping"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:39:51.554","tool":"puppeteer_fill"}
+{"arguments":{"selector":"button:has-text(\"Sign In\")"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:39:59.300","tool":"puppeteer_click"}
+{"arguments":{"selector":"button[type=\"submit\"]"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:40:08.499","tool":"puppeteer_click"}
+{"arguments":{"selector":"button"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:43:16.308","tool":"puppeteer_click"}
+{"arguments":{"script":"document.querySelector('form').submit()"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:46:23.697","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":39,"service":"mcp-puppeteer","timestamp":"2025-08-04 11:46:23.697"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 11:46:23.699"}
+{"arguments":{"name":"after_login_attempt"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:46:46.131","tool":"puppeteer_screenshot"}
+{"arguments":{"script":"document.body.innerText"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:46:52.873","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":23,"service":"mcp-puppeteer","timestamp":"2025-08-04 11:46:52.873"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 11:46:52.874"}
+{"arguments":{"script":"Array.from(document.querySelectorAll('*')).map(el => el.textContent).filter(text => text && text.includes('Sign') || text.includes('Error')).slice(0, 10)"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 11:47:02.332","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":153,"service":"mcp-puppeteer","timestamp":"2025-08-04 11:47:02.332"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 11:47:02.334"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 12:02:27.365"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 12:02:27.365"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 12:26:50.369"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 12:26:50.370"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 13:03:58.121"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 13:03:58.122"}
+{"arguments":{},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:29.317","tool":"puppeteer_connect_active_tab"}
+{"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:29.317"}
+{"level":"info","message":"Browser launched successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:30.603"}
+{"level":"info","message":"Connecting to existing browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:30.621","wsEndpoint":"ws://localhost:9222/devtools/browser/301b8482-1c33-4cdb-b6e8-dfb3c876a38a"}
+{"level":"debug","message":"Establishing connection to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:30.621"}
+{"level":"info","message":"Successfully connected to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:30.626"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:30.640","title":"Create Next App","url":"http://localhost:3001/login"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:30.644","title":"DevTools","url":"devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@7ea839044480a944888296dc0cccc5afb60b736c/&targetType=tab&can_dock=true&panel=elements"}
+{"arguments":{"selector":"input[type=\"email\"]","value":"mitch.driftless@gmail.com"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:41.882","tool":"puppeteer_fill"}
+{"arguments":{"selector":"input[type=\"password\"]","value":"yotyping"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:50.438","tool":"puppeteer_fill"}
+{"arguments":{"selector":"button[type=\"submit\"]"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:05:54.211","tool":"puppeteer_click"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 13:07:36.306"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 13:07:36.307"}
+{"arguments":{},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:08:58.406","tool":"puppeteer_connect_active_tab"}
+{"level":"info","message":"Connecting to existing browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:08:58.408","wsEndpoint":"ws://localhost:9222/devtools/browser/301b8482-1c33-4cdb-b6e8-dfb3c876a38a"}
+{"level":"debug","message":"Establishing connection to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:08:58.409"}
+{"level":"info","message":"Successfully connected to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:08:58.412"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:08:58.423","title":"Create Next App","url":"http://localhost:3001/login"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:08:58.426","title":"DevTools","url":"devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@7ea839044480a944888296dc0cccc5afb60b736c/&targetType=tab&can_dock=true&panel=elements"}
+{"arguments":{"name":"login-page"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:01.774","tool":"puppeteer_screenshot"}
+{"arguments":{"selector":"button:has-text(\"Sign In\")"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:06.601","tool":"puppeteer_click"}
+{"arguments":{"script":"// Find and click the Sign In button\nconst buttons = Array.from(document.querySelectorAll('button'));\nconst signInButton = buttons.find(btn => btn.textContent.trim() === 'Sign In');\nif (signInButton) {\n  signInButton.click();\n  'Clicked Sign In button';\n} else {\n  'Sign In button not found';\n}"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:12.312","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":294,"service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:12.312"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:12.326"}
+{"arguments":{"script":"window.location.href"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:16.765","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":20,"service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:16.765"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:16.958"}
+{"arguments":{},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:21.568","tool":"puppeteer_connect_active_tab"}
+{"level":"info","message":"Connecting to existing browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:21.570","wsEndpoint":"ws://localhost:9222/devtools/browser/301b8482-1c33-4cdb-b6e8-dfb3c876a38a"}
+{"level":"debug","message":"Establishing connection to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:21.570"}
+{"level":"info","message":"Successfully connected to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:21.573"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:21.582","title":"Create Next App","url":"http://localhost:3001/inventory"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:21.583","title":"DevTools","url":"devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@7ea839044480a944888296dc0cccc5afb60b736c/&targetType=tab&can_dock=true&panel=elements"}
+{"arguments":{"height":800,"name":"inventory-page-with-sidebar","width":1200},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:27.176","tool":"puppeteer_screenshot"}
+{"arguments":{"script":"// Get all console messages\nconst consoleMessages = [];\nconst originalLog = console.log;\nconst originalError = console.error;\nconst originalWarn = console.warn;\n\n// Check if there are any errors in the console\nconst errors = [];\nwindow.addEventListener('error', (e) => {\n    errors.push(e.message);\n});\n\n// Return current page info and any errors\n{\n    currentUrl: window.location.href,\n    pageTitle: document.title,\n    errors: errors,\n    sidebarVisible: !!document.querySelector('[data-testid=\"user-menu\"]'),\n    signOutButtonVisible: !!document.querySelector('button[aria-label=\"Sign out of your account\"]')\n}"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:43.931","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":614,"service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:43.932"}
+{"error":"Unexpected token ':'","level":"error","message":"Script evaluation failed","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:43.933"}
+{"arguments":{"script":"(() => {\n    return {\n        currentUrl: window.location.href,\n        pageTitle: document.title,\n        sidebarVisible: !!document.querySelector('[data-testid=\"user-menu\"]'),\n        signOutButtonVisible: !!document.querySelector('button[aria-label=\"Sign out of your account\"]')\n    };\n})()"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:50.532","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":293,"service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:50.532"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:50.534"}
+{"arguments":{"selector":"button[aria-label=\"Sign out of your account\"]"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:09:55.297","tool":"puppeteer_click"}
+{"arguments":{},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:00.011","tool":"puppeteer_connect_active_tab"}
+{"level":"info","message":"Connecting to existing browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:00.022","wsEndpoint":"ws://localhost:9222/devtools/browser/301b8482-1c33-4cdb-b6e8-dfb3c876a38a"}
+{"level":"debug","message":"Establishing connection to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:00.022"}
+{"level":"info","message":"Successfully connected to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:00.033"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:00.047","title":"Create Next App","url":"http://localhost:3001/inventory"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:00.049","title":"DevTools","url":"devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@7ea839044480a944888296dc0cccc5afb60b736c/&targetType=tab&can_dock=true&panel=elements"}
+{"arguments":{"script":"// Find and click the Sign Out button\nconst signOutButton = document.querySelector('button[aria-label=\"Sign out of your account\"]');\nif (signOutButton) {\n    signOutButton.click();\n    'Sign Out button clicked';\n} else {\n    'Sign Out button not found';\n}"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:06.391","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":255,"service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:06.391"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:06.395"}
+{"arguments":{},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:11.904","tool":"puppeteer_connect_active_tab"}
+{"level":"info","message":"Connecting to existing browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:11.907","wsEndpoint":"ws://localhost:9222/devtools/browser/301b8482-1c33-4cdb-b6e8-dfb3c876a38a"}
+{"level":"debug","message":"Establishing connection to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:11.907"}
+{"level":"info","message":"Successfully connected to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:11.910"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:11.920","title":"Create Next App","url":"http://localhost:3001/login"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:13:11.920","title":"DevTools","url":"devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@7ea839044480a944888296dc0cccc5afb60b736c/&targetType=tab&can_dock=true&panel=elements"}
+{"arguments":{},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:06.965","tool":"puppeteer_connect_active_tab"}
+{"level":"info","message":"Connecting to existing browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:06.968","wsEndpoint":"ws://localhost:9222/devtools/browser/301b8482-1c33-4cdb-b6e8-dfb3c876a38a"}
+{"level":"debug","message":"Establishing connection to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:06.968"}
+{"level":"info","message":"Successfully connected to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:06.973"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:06.984","title":"Create Next App","url":"http://localhost:3001/login"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:06.986","title":"DevTools","url":"devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@7ea839044480a944888296dc0cccc5afb60b736c/&targetType=tab&can_dock=true&panel=elements"}
+{"arguments":{"selector":"input[type=\"email\"]","value":"mitch.driftless@gmail.com"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:12.035","tool":"puppeteer_fill"}
+{"arguments":{"selector":"input[type=\"password\"]","value":"yotyping"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:17.158","tool":"puppeteer_fill"}
+{"arguments":{"script":"document.querySelector('button[type=\"submit\"]')?.click()"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:21.582","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":56,"service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:21.582"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:21.593"}
+{"arguments":{"targetUrl":"http://localhost:3001/admin/flags"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:25.933","tool":"puppeteer_connect_active_tab"}
+{"level":"info","message":"Connecting to existing browser","service":"mcp-puppeteer","targetUrl":"http://localhost:3001/admin/flags","timestamp":"2025-08-04 13:24:25.935","wsEndpoint":"ws://localhost:9222/devtools/browser/301b8482-1c33-4cdb-b6e8-dfb3c876a38a"}
+{"level":"debug","message":"Establishing connection to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:25.935"}
+{"level":"info","message":"Successfully connected to browser","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:25.938"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:25.996","title":"Create Next App","url":"http://localhost:3001/inventory"}
+{"level":"info","message":"Found active webpage:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:26.008","title":"DevTools","url":"devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@7ea839044480a944888296dc0cccc5afb60b736c/&targetType=tab&can_dock=true&panel=elements"}
+{"arguments":{"url":"http://localhost:3001/admin/flags"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:29.825","tool":"puppeteer_navigate"}
+{"level":"info","message":"Navigating to URL","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:29.826","url":"http://localhost:3001/admin/flags"}
+{"level":"info","message":"Navigation successful","service":"mcp-puppeteer","status":200,"timestamp":"2025-08-04 13:24:33.134","url":"http://localhost:3001/admin/flags"}
+{"arguments":{"script":"// Set up console monitoring\nwindow.consoleMessages = [];\nconst originalConsoleLog = console.log;\nconst originalConsoleError = console.error;\n\nconsole.log = function(...args) {\n    window.consoleMessages.push({type: 'log', args: args});\n    originalConsoleLog.apply(console, args);\n};\n\nconsole.error = function(...args) {\n    window.consoleMessages.push({type: 'error', args: args});\n    originalConsoleError.apply(console, args);\n};\n\n// Clear any existing messages\nwindow.consoleMessages = [];\n\"Console monitoring enabled\""},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:40.257","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":523,"service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:40.258"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:40.259"}
+{"arguments":{"selector":"button[aria-label=\"Sign out of your account\"]"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:24:44.341","tool":"puppeteer_click"}
+{"level":"info","message":"Puppeteer MCP Server closing","service":"mcp-puppeteer","timestamp":"2025-08-04 13:26:42.251"}
+{"level":"info","message":"Puppeteer MCP Server closing","service":"mcp-puppeteer","timestamp":"2025-08-04 13:26:42.599"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:04.029"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:04.030"}
+{"arguments":{"script":"// Click the sign out button and monitor console\nconst signOutButton = document.querySelector('button[aria-label=\"Sign out of your account\"]');\nif (signOutButton) {\n    signOutButton.click();\n    'Sign out button clicked';\n} else {\n    'Sign out button not found';\n}"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:34.315","tool":"puppeteer_evaluate"}
+{"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:34.315"}
+{"level":"info","message":"Browser launched successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:35.097"}
+{"level":"debug","message":"Executing script in browser","scriptLength":266,"service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:35.097"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:35.099"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:35.324"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:35.325"}
+{"arguments":{"script":"// Check console messages and current URL\nsetTimeout(() => {\n    return {\n        consoleMessages: window.consoleMessages || [],\n        currentUrl: window.location.href,\n        signOutButtonText: document.querySelector('button[aria-label=\"Sign out of your account\"]')?.textContent\n    };\n}, 2000)"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:39.453","tool":"puppeteer_evaluate"}
+{"level":"debug","message":"Executing script in browser","scriptLength":298,"service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:39.453"}
+{"hasResult":false,"level":"debug","logCount":0,"message":"Script execution result","resultType":"undefined","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:39.454"}
+{"arguments":{},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 13:36:42.879","tool":"puppeteer_connect_active_tab"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 13:37:47.314"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 13:37:47.314"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-08-04 13:44:35.620"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 13:44:35.621"}
+{"arguments":{"targetUrl":"http://localhost:3001"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-08-04 14:17:59.816","tool":"puppeteer_connect_active_tab"}
+{"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-08-04 14:17:59.817"}
+{"level":"info","message":"Browser launched successfully","service":"mcp-puppeteer","timestamp":"2025-08-04 14:18:00.514"}

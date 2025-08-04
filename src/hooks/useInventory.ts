@@ -108,8 +108,8 @@ export const useInventory = (
     gcTime: 10 * 60 * 1000, // 10 minutes
     // Prevent automatic refetching on navigation/tab focus
     refetchOnWindowFocus: false,
-    refetchOnMount: 'if-stale',
-    refetchOnReconnect: 'if-stale'
+    refetchOnMount: false,
+    refetchOnReconnect: false
   });
 };
 
@@ -145,8 +145,8 @@ export const useInventorySummaryMetrics = ({
     gcTime: 8 * 60 * 1000, // 8 minutes
     // Prevent automatic refetching on navigation/tab focus
     refetchOnWindowFocus: false,
-    refetchOnMount: 'if-stale',
-    refetchOnReconnect: 'if-stale'
+    refetchOnMount: false,
+    refetchOnReconnect: false
   });
 };
 

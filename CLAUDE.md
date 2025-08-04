@@ -45,6 +45,22 @@ npm run lint         # Run ESLint
 - `/supabase/` - Database migrations and edge functions
 - `/e2e/` - End-to-end Playwright tests
 
+### Core Architectural Constraints
+
+**CRITICAL**: These patterns are non-negotiable and must be followed:
+
+1. **Database-First Design**: Always reason from the database schema outwards. Prefer RPCs over direct table access.
+
+2. **Strict Data Hierarchy**: `books` (the work) → `editions` (a specific publication) → `stock_items` (a physical copy)
+
+3. **EAV Pattern for Attributes**: All unique book metadata (e.g., "signed," "first edition") MUST use the `stock_item_attributes` table. **NEVER** add columns to `stock_items`.
+
+4. **Multi-Tenancy Security**: All queries touching `stock_items` or related user data MUST be scoped by `organization_id`.
+
+5. **Type Safety**: No `any` types. All functions, props, and state must be strictly typed.
+
+6. **Modern React Patterns**: Use Server Components by default. Use TanStack Query for all server state; **NEVER** fetch data in `useEffect`.
+
 ### Key Architectural Patterns
 
 1. **Event-Driven Architecture**: Uses Supabase outbox pattern for async processing
@@ -87,6 +103,14 @@ npm run lint         # Run ESLint
 - **Migrations**: Located in `/supabase/migrations/`
 - **Performance**: Optimized indexes for search and pagination
 
+### Key Database Patterns
+
+- **Data Hierarchy**: `books` (work) → `editions` (publication) → `stock_items` (physical copy)
+- **Key RPCs**: `search_inventory()`, `get_edition_details()`, `add_stock_item_attribute()`
+- **EAV Usage**: To add attributes like "Signed" to stock items:
+  1. Query `attribute_types` table for the attribute UUID
+  2. Call `add_stock_item_attribute` RPC with `stock_item_id`, attribute UUID, and value
+
 ## Testing Strategy
 
 - **Unit Tests**: Vitest with React Testing Library
@@ -114,6 +138,16 @@ npm run lint         # Run ESLint
 - **Authorization**: RLS policies enforce access control
 - **Validation**: Zod schemas for all user input
 - **Sanitization**: Server-side validation in edge functions
+
+## Forbidden Patterns
+
+**NEVER** do these things - they violate core architectural principles:
+
+- Add columns like `is_signed` or `edition_number` to `stock_items` table (use EAV pattern)
+- Use `useEffect` for data fetching (use TanStack Query hooks)
+- Write database queries without `organization_id` scoping where required
+- Modify Supabase-generated `types.ts` directly (changes must come from migrations)
+- Use `any` types anywhere in the codebase
 
 ## Development Memories
 
