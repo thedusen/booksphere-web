@@ -60,30 +60,12 @@ const Sidebar: React.FC = () => {
         try {
             console.log('Attempting to sign out...');
             
-            // Add timeout to prevent hanging
-            const signOutPromise = supabase.auth.signOut({ scope: 'local' });
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Sign out timeout')), 10000)
-            );
-            
-            const { error } = await Promise.race([signOutPromise, timeoutPromise]) as any;
+            const { error } = await supabase.auth.signOut({ scope: 'local' });
             
             console.log('Sign out response:', { error });
             
             if (error) {
                 console.error('Supabase logout error:', error);
-                
-                // Try alternative approach - clear session manually
-                console.log('Attempting manual session clear...');
-                try {
-                    await supabase.auth.getSession();
-                    // Force clear the session
-                    localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
-                    sessionStorage.clear();
-                } catch (clearError) {
-                    console.error('Manual session clear failed:', clearError);
-                }
-                
                 toast.error(`Failed to sign out: ${error.message}`);
                 setIsSigningOut(false);
                 return;
