@@ -448,7 +448,7 @@ export const OptimizedCatalogingDataTable = React.memo(({
   // Empty state
   if (jobs.length === 0) {
     return (
-      <div className="border rounded-lg">
+      <div className="border border-neutral-200/60 rounded-xl bg-gradient-to-br from-background/98 to-lavender-50/30 shadow-elevation-2">
         <div className="p-8 text-center text-muted-foreground">
           <p>No cataloging jobs found</p>
         </div>
@@ -457,7 +457,7 @@ export const OptimizedCatalogingDataTable = React.memo(({
   }
 
   return (
-    <div className="border rounded-lg">
+    <div className="border border-neutral-200/60 rounded-xl bg-gradient-to-br from-background/98 to-lavender-50/30 shadow-elevation-2 hover:shadow-elevation-3 animate-spring">
       <Table>
         <TableHeader>
           <TableRow>
@@ -559,7 +559,7 @@ export class CatalogingDataTableErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="border rounded-lg">
+        <div className="border border-neutral-200/60 rounded-xl bg-gradient-to-br from-background/98 to-lavender-50/30 shadow-elevation-2">
           <div className="p-8 text-center">
             <h3 className="text-lg font-semibold text-destructive mb-2">
               Table Error

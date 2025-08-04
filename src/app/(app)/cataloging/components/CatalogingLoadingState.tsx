@@ -62,7 +62,7 @@ export function CatalogingLoadingState({ isMobile = false }: CatalogingLoadingSt
   return (
     <div className="space-y-4" role="status" aria-label="Loading cataloging jobs">
       {/* Desktop Table Header Skeleton */}
-      <div className="border rounded-lg">
+      <div className="border border-neutral-200/60 rounded-xl bg-gradient-to-br from-background/98 to-lavender-50/30 shadow-elevation-2">
         <div className="border-b p-4">
           <div className="flex items-center gap-4">
             <Skeleton className="h-4 w-4" /> {/* Select all checkbox */}

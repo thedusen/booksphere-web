@@ -100,7 +100,7 @@ export function CatalogingDashboardHeader({
   // Render bulk action bar
   if (hasBulkSelection) {
     return (
-      <div className="sticky top-0 z-10 bg-background border-b">
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-background/95 to-lavender-50/30 backdrop-blur-sm border-b border-neutral-200/60">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Badge variant="secondary" className="text-sm">
@@ -151,7 +151,7 @@ export function CatalogingDashboardHeader({
   }
 
   return (
-    <div className="sticky top-0 z-10 bg-background border-b">
+    <div className="sticky top-0 z-10 bg-gradient-to-r from-background/95 to-lavender-50/30 backdrop-blur-sm border-b border-neutral-200/60">
       <div className="space-y-4 px-4 py-4">
         {/* Page Title */}
         <div className="flex items-center justify-between">

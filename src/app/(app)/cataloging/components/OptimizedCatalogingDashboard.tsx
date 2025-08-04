@@ -457,7 +457,7 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
 
       {/* Performance Monitoring Display (Development Only) */}
       {enablePerformanceMonitoring && process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-background border rounded-lg p-4 text-xs space-y-2 shadow-lg">
+        <div className="fixed bottom-4 right-4 bg-gradient-to-br from-background/98 to-lavender-50/30 border border-neutral-200/60 rounded-xl p-4 text-xs space-y-2 shadow-elevation-3 backdrop-blur-sm">
           <div className="font-semibold">Performance Monitor</div>
           <div>Jobs: {jobs.length}</div>
           <div>Selected: {selectedJobIds.length}</div>
