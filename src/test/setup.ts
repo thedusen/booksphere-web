@@ -1,10 +1,6 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
-// Set mock environment variables for Supabase
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321'
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
-
 // Add missing DOM API polyfills for jsdom
 if (typeof Element !== 'undefined') {
   // Polyfill for Radix UI hasPointerCapture compatibility
@@ -23,38 +19,13 @@ if (typeof Element !== 'undefined') {
   }
 }
 
-// Mock Supabase client - but only for non-hook tests
-// Hook tests will mock this themselves
-const mockSupabase = {
-  rpc: vi.fn(),
-  from: vi.fn(() => ({
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  })),
-  auth: {
-    getUser: vi.fn(() => Promise.resolve({
-      data: { user: { id: 'test-user-id' } },
-      error: null
-    })),
-  },
-}
-
-// Only mock Supabase for component tests, not hook tests
-vi.mock('@/lib/supabase', () => ({
-  supabase: mockSupabase,
-}))
-
 // Mock useOrganization hook
 vi.mock('@/hooks/useOrganization', () => ({
   useOrganization: vi.fn(() => ({
-    organization: {
-      id: 'test-org-id',
-      name: 'Test Organization',
-    },
-    isLoading: false,
+    organizationId: 'test-org-id',
+    loading: false,
     error: null,
+    user: { id: 'test-user-id' },
   })),
 }))
 
@@ -100,4 +71,64 @@ Object.assign(navigator, {
     writeText: vi.fn(() => Promise.resolve()),
     readText: vi.fn(() => Promise.resolve('')),
   },
-}) 
+})
+
+// Mock Supabase client globally for tests
+vi.mock('@/lib/supabase', () => {
+  const rpcMock = vi.fn(async (_fn: string, _params?: any) => ({
+    data: null,
+    error: null,
+    status: 200,
+    statusText: 'OK',
+    count: null,
+  }));
+
+  const selectMock = vi.fn(() => Promise.resolve({ data: [], error: null, status: 200, statusText: 'OK', count: null }));
+
+  const createQueryBuilder = () => {
+    const builder: any = {
+      select: vi.fn(() => builder),
+      eq: vi.fn(() => builder),
+      order: vi.fn(() => builder),
+      gte: vi.fn(() => builder),
+      lte: vi.fn(() => builder),
+      or: vi.fn(() => builder),
+      range: vi.fn(() => builder),
+      insert: vi.fn(() => Promise.resolve({ data: null, error: null })),
+      update: vi.fn(() => Promise.resolve({ data: null, error: null })),
+      delete: vi.fn(() => Promise.resolve({ data: null, error: null })),
+      single: vi.fn(() => builder),
+      then: (resolve: any) => resolve({ data: [], error: null, count: 0 }),
+    };
+    return builder;
+  };
+
+  const fromMock = vi.fn(() => createQueryBuilder());
+
+  const mockChannel = {
+    subscribe: vi.fn().mockReturnThis(),
+    on: vi.fn().mockReturnThis(),
+    unsubscribe: vi.fn(),
+  };
+
+  const channelMock = vi.fn(() => mockChannel);
+
+  return {
+    supabase: {
+      rpc: rpcMock,
+      from: fromMock,
+      channel: channelMock,
+      removeChannel: vi.fn(),
+      auth: {
+        getUser: vi.fn(() => Promise.resolve({
+          data: { user: { id: 'test-user-id' } },
+          error: null,
+        })),
+      },
+    },
+  };
+});
+
+// Ensure Supabase env vars are set for modules that do not use the mocked client
+process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'test_anon_key'; 

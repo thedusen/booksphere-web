@@ -62,7 +62,7 @@ export function InventoryForm() {
             if (error) throw error;
             setSubmitSuccess(true);
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
             setSubmitError(err.message || 'Submission failed');
         },
     });

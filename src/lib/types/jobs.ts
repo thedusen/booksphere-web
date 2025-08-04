@@ -22,6 +22,7 @@ export interface BookMetadata {
   edition_statement?: string;
   
   // Physical characteristics
+  isbn?: string;
   isbn13?: string;
   isbn10?: string;
   page_count?: number;
@@ -61,6 +62,17 @@ export interface CatalogingJobImageUrls {
   additional_images?: string[];
 }
 
+// Type for edition matching results
+export interface BookMatch {
+  edition_id: string;
+  title: string;
+  subtitle?: string;
+  authors?: string[];
+  publisher_name?: string;
+  publication_year?: number;
+  confidence: 'high' | 'medium' | 'low';
+}
+
 // Strongly typed cataloging job with proper extracted_data
 export interface TypedCatalogingJob extends Omit<CatalogingJob, 'extracted_data' | 'image_urls'> {
   extracted_data: BookMetadata | null;
@@ -85,12 +97,15 @@ export interface CatalogingJobFinalizeRequest {
   title: string;
   condition_id: string;
   price: number;
+  isbn?: string;
   subtitle?: string;
   authors?: string[];
   publisher_name?: string;
   publication_year?: number;
   publication_location?: string;
   edition_statement?: string;
+  format_id?: string;
+  pagination_text?: string;
   has_dust_jacket?: boolean;
   sku?: string;
   condition_notes?: string;
@@ -118,6 +133,7 @@ export function isBookMetadata(value: unknown): value is BookMetadata {
   if (metadata.publication_year !== undefined && typeof metadata.publication_year !== 'number') return false;
   if (metadata.publication_location !== undefined && typeof metadata.publication_location !== 'string') return false;
   if (metadata.edition_statement !== undefined && typeof metadata.edition_statement !== 'string') return false;
+  if (metadata.isbn !== undefined && typeof metadata.isbn !== 'string') return false;
   if (metadata.isbn13 !== undefined && typeof metadata.isbn13 !== 'string') return false;
   if (metadata.isbn10 !== undefined && typeof metadata.isbn10 !== 'string') return false;
   if (metadata.page_count !== undefined && typeof metadata.page_count !== 'number') return false;

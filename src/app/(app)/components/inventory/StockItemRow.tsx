@@ -7,7 +7,6 @@ import { createFlagContextData } from '@/lib/types/flags';
 
 interface StockItemRowProps {
     item: StockItem | EditionStockItem;
-    isLast?: boolean;
     /**
      * Optional book/edition context for enhanced user experience.
      * When provided, displays the book title with flagging capability.
@@ -42,7 +41,6 @@ interface StockItemRowProps {
  */
 const StockItemRowComponent: React.FC<StockItemRowProps> = ({ 
     item, 
-    isLast = false,
     bookContext 
 }) => {
     const isListedOn = (marketplace: string) => {
@@ -61,19 +59,9 @@ const StockItemRowComponent: React.FC<StockItemRowProps> = ({
         condition: item.condition_name,
         price: item.selling_price_amount,
         ...(bookContext && { title: bookContext.title, author: bookContext.primaryAuthor }),
-    }), [item.condition_name, item.selling_price_amount, bookContext?.title, bookContext?.primaryAuthor]);
+    }), [item.condition_name, item.selling_price_amount, bookContext]);
 
-    const conditionContextData = useMemo(() => ({
-        sku: item.sku || "N/A",
-        price: item.selling_price_amount,
-        ...(bookContext && { title: bookContext.title, author: bookContext.primaryAuthor }),
-    }), [item.sku, item.selling_price_amount, bookContext?.title, bookContext?.primaryAuthor]);
-
-    const priceContextData = useMemo(() => ({
-        sku: item.sku || "N/A", 
-        condition: item.condition_name,
-        ...(bookContext && { title: bookContext.title, author: bookContext.primaryAuthor }),
-    }), [item.sku, item.condition_name, bookContext?.title, bookContext?.primaryAuthor]);
+    // Unused context data removed for cleaner code
 
     // Performance Expert: Optimized title context memoization with granular dependencies
     const titleContextData = useMemo(() => ({
@@ -81,7 +69,7 @@ const StockItemRowComponent: React.FC<StockItemRowProps> = ({
         condition: item.condition_name,
         price: item.selling_price_amount,
         author: bookContext?.primaryAuthor,
-    }), [item.sku, item.condition_name, item.selling_price_amount, bookContext?.primaryAuthor]);
+    }), [item.sku, item.condition_name, item.selling_price_amount, bookContext]);
 
     // Performance Expert: Memoize display values to prevent string operations on every render
     const displayValues = useMemo(() => ({
@@ -91,11 +79,12 @@ const StockItemRowComponent: React.FC<StockItemRowProps> = ({
 
     return (
         <div className={cn(
-            "flex justify-between items-center p-3 hover:bg-muted/50 rounded-md",
-            !isLast ? "border-b border-muted" : "",
-            "pl-24 pr-16"
+            "flex justify-between items-center rounded-xl transition-all animate-spring",
+            "px-lg py-lg bg-gradient-to-r from-background/80 via-lavender-50/20 to-background/80",
+            "hover:from-primary/8 hover:via-secondary/5 hover:to-primary/8 hover:shadow-elevation-2 hover-scale-sm",
+            "border border-neutral-200/30 hover:border-primary/30 shadow-elevation-1"
         )}>
-            <div className="flex-1 space-y-1">
+            <div className="flex-1 space-y-2">
                 {/* 
                     TASK 2 IMPLEMENTATION: Book Title with FlaggingTrigger
                     
@@ -114,12 +103,12 @@ const StockItemRowComponent: React.FC<StockItemRowProps> = ({
                         currentValue={bookContext.title}
                         fieldLabel="Book Title"
                         contextData={titleContextData}
-                        className="flaggable-field inline-block rounded-sm px-1 -mx-1 w-full"
+                        className="flaggable-field inline-block rounded-sm px-1 -mx-1 w-full cursor-default"
                     >
-                        <div className="text-sm font-medium text-primary/90 leading-tight mb-1">
+                        <div className="text-sm font-semibold !text-gray-900 dark:!text-gray-100 leading-tight mb-1">
                             {bookContext.title}
                             {bookContext.primaryAuthor && (
-                                <span className="text-xs text-muted-foreground block">
+                                <span className="text-xs !text-gray-600 dark:!text-gray-400 block font-normal">
                                     by {bookContext.primaryAuthor}
                                 </span>
                             )}
@@ -142,9 +131,9 @@ const StockItemRowComponent: React.FC<StockItemRowProps> = ({
                         sku: item.sku || undefined,
                         location: item.location_in_store_text || undefined,
                     })}
-                    className="flaggable-field"
+                    className="flaggable-field cursor-default"
                 >
-                <Badge variant="outline">{item.condition_name}</Badge>
+                <Badge className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20 text-primary font-medium">{item.condition_name}</Badge>
                 </FlaggingTrigger>
 
                 {/* SKU field with flagging capability */}
@@ -155,37 +144,41 @@ const StockItemRowComponent: React.FC<StockItemRowProps> = ({
                     currentValue={displayValues.sku}
                     fieldLabel="SKU"
                     contextData={skuContextData}
-                    className="flaggable-field inline-block rounded-sm px-1 -mx-1"
+                    className="flaggable-field inline-block rounded-sm px-1 -mx-1 cursor-default"
                 >
-                    <div className="text-sm text-muted-foreground">SKU: {displayValues.sku}</div>
+                    <div className="text-sm text-muted-foreground font-mono">SKU: {displayValues.sku}</div>
                 </FlaggingTrigger>
 
-                 <div className="flex items-center pt-1 space-x-2">
-                    {isListedOn("Amazon") && <Badge variant="secondary">Amazon</Badge>}
-                    {isListedOn("eBay") && <Badge variant="secondary">eBay</Badge>}
-                    {needsPhotos && <Badge variant="outline">Needs Photos</Badge>}
+                 <div className="flex items-center pt-2 space-x-2">
+                    {isListedOn("Amazon") && <Badge className="bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 border-emerald-500/20 text-emerald-700">Amazon</Badge>}
+                    {isListedOn("eBay") && <Badge className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 border-blue-500/20 text-blue-700">eBay</Badge>}
+                    {needsPhotos && <Badge className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20 text-amber-700">Needs Photos</Badge>}
                 </div>
             </div>
 
             {/* Price field with flagging capability */}
-            <FlaggingTrigger
-                tableName="stock_items"
-                recordId={item.stock_item_id}
-                fieldName="selling_price_amount"
-                currentValue={item.selling_price_amount ? `$${(item.selling_price_amount / 100).toFixed(2)}` : "No price"}
-                fieldLabel="Selling Price"
-                contextData={createFlagContextData({
-                    title: bookContext?.title,
-                    primaryAuthor: bookContext?.primaryAuthor,
-                    condition: item.condition_name,
-                    price: item.selling_price_amount ? item.selling_price_amount / 100 : undefined,
-                    sku: item.sku || undefined,
-                    location: item.location_in_store_text || undefined,
-                })}
-                className="flaggable-field"
-            >
-            <span>{item.selling_price_amount ? `$${(item.selling_price_amount / 100).toFixed(2)}` : "No price"}</span>
-            </FlaggingTrigger>
+            <div className="text-right">
+                <FlaggingTrigger
+                    tableName="stock_items"
+                    recordId={item.stock_item_id}
+                    fieldName="selling_price_amount"
+                    currentValue={item.selling_price_amount ? `$${(item.selling_price_amount / 100).toFixed(2)}` : "No price"}
+                    fieldLabel="Selling Price"
+                    contextData={createFlagContextData({
+                        title: bookContext?.title,
+                        primaryAuthor: bookContext?.primaryAuthor,
+                        condition: item.condition_name,
+                        price: item.selling_price_amount ? item.selling_price_amount / 100 : undefined,
+                        sku: item.sku || undefined,
+                        location: item.location_in_store_text || undefined,
+                    })}
+                    className="flaggable-field cursor-default"
+                >
+                    <span className="font-bold text-xl !text-gray-900 dark:!text-gray-100">
+                        {item.selling_price_amount ? `$${(item.selling_price_amount / 100).toFixed(2)}` : "No price"}
+                    </span>
+                </FlaggingTrigger>
+            </div>
         </div>
     );
 };
@@ -212,8 +205,7 @@ function arePropsEqual(
         prevProps.item.stock_item_id !== nextProps.item.stock_item_id ||
         prevProps.item.condition_name !== nextProps.item.condition_name ||
         prevProps.item.selling_price_amount !== nextProps.item.selling_price_amount ||
-        prevProps.item.sku !== nextProps.item.sku ||
-        prevProps.isLast !== nextProps.isLast
+        prevProps.item.sku !== nextProps.item.sku
     ) {
         return false;
     }

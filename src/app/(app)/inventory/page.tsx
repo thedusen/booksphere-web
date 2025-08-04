@@ -73,6 +73,8 @@ export default function InventoryPage() {
 
     // Save and restore scroll position on the scroll container, with debug logging and scroll event
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
         const scrollableElement = scrollContainerRef.current;
         if (!scrollableElement) {
             return;
@@ -109,6 +111,8 @@ export default function InventoryPage() {
     // Highlight last-viewed edition
     const [lastViewedEditionId, setLastViewedEditionId] = useState<string | null>(null);
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
         const id = sessionStorage.getItem('lastViewedEditionId');
         if (id) {
             setLastViewedEditionId(id);
@@ -127,16 +131,20 @@ export default function InventoryPage() {
     }
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
-                <Button asChild>
-                    <Link href="/inventory/new">
-                        <Plus className="mr-2 h-5 w-5" />
-                        Add New Item
-                    </Link>
-                </Button>
-            </div>
+        <div className="min-h-screen p-xl">
+            <div className="flex flex-col gap-lg max-w-none">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-4xl font-bold tracking-tight gradient-text">Inventory</h1>
+                        <p className="text-muted-foreground mt-1">Manage your book collection and stock levels</p>
+                    </div>
+                    <Button asChild size="lg" variant="primary" className="shadow-elevation-2 hover-scale-sm">
+                        <Link href="/inventory/new">
+                            <Plus className="mr-2 h-5 w-5" />
+                            Add New Item
+                        </Link>
+                    </Button>
+                </div>
 
             <InventoryDashboardHeader
                 bookCount={summaryMetrics?.book_count ?? 0}
@@ -145,15 +153,19 @@ export default function InventoryPage() {
                 isLoading={summaryLoading}
             />
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-sm bg-gradient-to-r from-card via-card to-lavender-50/30 p-md rounded-xl border border-neutral-200/60 shadow-elevation-2">
                 <Input
                     type="text"
-                    placeholder="Search inventory..."
-                    className="flex-1"
+                    placeholder="Search by title, author, ISBN..."
+                    className="flex-1 bg-background/50 border-0 shadow-elevation-1 focus-visible:shadow-elevation-2"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <Button variant="outline" onClick={() => setFilterModalOpen(true)}>
+                <Button 
+                    variant="ghost"
+                    onClick={() => setFilterModalOpen(true)} 
+                    className="shadow-elevation-2 hover-scale-sm bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/30 hover:border-primary/50 hover:bg-gradient-to-r hover:from-primary/20 hover:to-secondary/20 transition-all animate-spring glow-purple text-primary hover:text-white"
+                >
                     <Filter className="mr-2 h-4 w-4" />
                     Filter
                 </Button>
@@ -177,8 +189,10 @@ export default function InventoryPage() {
                 <EmptyState searchQuery={searchQuery} />
             ) : (
                 <>
-                    <div className="text-sm text-muted-foreground">
-                        Showing {inventoryData.length} of {summaryMetrics?.book_count ?? 0} books
+                    <div className="flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
+                            Showing <span className="font-medium text-foreground">{inventoryData.length}</span> of <span className="font-medium text-foreground">{summaryMetrics?.book_count ?? 0}</span> books
+                        </div>
                     </div>
                     <InventoryListTable
                         data={inventoryData}
@@ -186,19 +200,22 @@ export default function InventoryPage() {
                         error={error as Error | null}
                         lastViewedEditionId={lastViewedEditionId || undefined}
                     />
-                    <div className="flex justify-center mt-4">
-                        {hasNextPage && (
+                    {hasNextPage && (
+                        <div className="flex justify-center pt-lg">
                             <Button
+                                variant="ghost"
                                 onClick={() => fetchNextPage()}
                                 disabled={isFetchingNextPage}
-                                variant="outline"
+                                size="lg"
+                                className="shadow-elevation-2 hover-scale-sm bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/30 hover:border-primary/50 hover:bg-gradient-to-r hover:from-primary/20 hover:to-secondary/20 transition-all animate-spring disabled:opacity-50 disabled:pointer-events-none text-primary hover:text-white"
                             >
-                                {isFetchingNextPage ? "Loading..." : "Load More"}
+                                {isFetchingNextPage ? "Loading more..." : "Load More Books"}
                             </Button>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </>
             )}
+            </div>
         </div>
     );
 }

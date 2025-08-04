@@ -8,7 +8,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, X, Filter, Calendar, FileText } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -52,7 +52,7 @@ export function CatalogingDashboardHeader({
   selectedJobIds,
   totalJobs,
   statusCounts,
-  jobs,
+  jobs: _jobs,
   onStatusFilterChange,
   onSearchChange,
   onSourceFilterChange,
@@ -176,9 +176,10 @@ export function CatalogingDashboardHeader({
           </TabsList>
         </Tabs>
 
-        {/* Search Input */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1 max-w-sm">
+        {/* Search and Filters - Single Row */}
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* Search Input */}
+          <div className="flex-1 min-w-[280px] max-w-sm">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -200,10 +201,67 @@ export function CatalogingDashboardHeader({
             </div>
           </div>
 
+          {/* Source Type Filter */}
+          <Select
+            value={filters.source_type || 'all'}
+            onValueChange={(value) => onSourceFilterChange(value === 'all' ? undefined : value as CatalogingJobSourceType)}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="All Sources" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sources</SelectItem>
+              <SelectItem value="isbn_scan">ISBN Scan</SelectItem>
+              <SelectItem value="manual_isbn">Manual ISBN</SelectItem>
+              <SelectItem value="image_capture">Image Capture</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Date Range Filter - Simplified */}
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={filters.date_from ? filters.date_from.split('T')[0] : ''}
+              onChange={(e) => {
+                const date = e.target.value;
+                if (date) {
+                  const dateRange = {
+                    from: new Date(date + 'T00:00:00'),
+                    to: filters.date_to ? new Date(filters.date_to) : new Date(date + 'T23:59:59')
+                  };
+                  onDateRangeChange(dateRange);
+                } else {
+                  onDateRangeChange(undefined);
+                }
+              }}
+              className="w-[130px]"
+              placeholder="From date"
+            />
+            <span className="text-muted-foreground text-sm">to</span>
+            <Input
+              type="date"
+              value={filters.date_to ? filters.date_to.split('T')[0] : ''}
+              onChange={(e) => {
+                const date = e.target.value;
+                if (date) {
+                  const dateRange = {
+                    from: filters.date_from ? new Date(filters.date_from) : new Date(date + 'T00:00:00'),
+                    to: new Date(date + 'T23:59:59')
+                  };
+                  onDateRangeChange(dateRange);
+                } else if (!filters.date_from) {
+                  onDateRangeChange(undefined);
+                }
+              }}
+              className="w-[130px]"
+              placeholder="To date"
+            />
+          </div>
+
           {/* Clear Filters Button */}
           {hasActiveFilters && (
             <Button
-              variant="ghost"
+              variant="ghost" 
               size="sm"
               onClick={onClearFilters}
               className="text-muted-foreground hover:text-foreground"
@@ -211,72 +269,6 @@ export function CatalogingDashboardHeader({
               Clear filters
             </Button>
           )}
-        </div>
-
-        {/* Secondary Filters */}
-        <div className="flex items-center gap-4 flex-wrap">
-          {/* Source Type Filter */}
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-muted-foreground" />
-            <Select
-              value={filters.source_type || 'all'}
-              onValueChange={(value) => onSourceFilterChange(value === 'all' ? undefined : value as CatalogingJobSourceType)}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Source type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sources</SelectItem>
-                <SelectItem value="isbn_scan">ISBN Scan</SelectItem>
-                <SelectItem value="manual_isbn">Manual ISBN</SelectItem>
-                <SelectItem value="image_capture">Image Capture</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Date Range Filter */}
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <div className="flex items-center gap-2">
-              <Input
-                type="date"
-                value={filters.date_from ? filters.date_from.split('T')[0] : ''}
-                onChange={(e) => {
-                  const date = e.target.value;
-                  if (date) {
-                    const dateRange = {
-                      from: new Date(date + 'T00:00:00'),
-                      to: filters.date_to ? new Date(filters.date_to) : new Date(date + 'T23:59:59')
-                    };
-                    onDateRangeChange(dateRange);
-                  } else {
-                    onDateRangeChange(undefined);
-                  }
-                }}
-                className="w-36"
-                placeholder="From date"
-              />
-              <span className="text-muted-foreground text-sm">to</span>
-              <Input
-                type="date"
-                value={filters.date_to ? filters.date_to.split('T')[0] : ''}
-                onChange={(e) => {
-                  const date = e.target.value;
-                  if (date) {
-                    const dateRange = {
-                      from: filters.date_from ? new Date(filters.date_from) : new Date(date + 'T00:00:00'),
-                      to: new Date(date + 'T23:59:59')
-                    };
-                    onDateRangeChange(dateRange);
-                  } else if (!filters.date_from) {
-                    onDateRangeChange(undefined);
-                  }
-                }}
-                className="w-36"
-                placeholder="To date"
-              />
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -6,10 +6,13 @@
 - textbox "Email": testuser@email.com
 - text: Password
 - textbox "Password": testuser
-- alert: Invalid login credentials
+- alert: Failed to fetch
 - button "Sign In"
 - alert
 - button "Open Next.js Dev Tools":
+  - img
+- button "Open issues overlay": 1 Issue
+- button "Collapse issues badge":
   - img
 - iframe
 ```

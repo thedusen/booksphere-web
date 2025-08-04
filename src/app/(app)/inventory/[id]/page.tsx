@@ -139,7 +139,9 @@ export default function EditionDetailPage() {
 
     // Save last viewed edition id to sessionStorage on mount
     useEffect(() => {
-        sessionStorage.setItem('lastViewedEditionId', id);
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('lastViewedEditionId', id);
+        }
     }, [id]);
 
     // Memoize context data for edition fields (expert recommendation)

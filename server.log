@@ -1,0 +1,56 @@
+
+> booksphere-web@0.1.0 dev
+> next dev --turbopack --port 3001
+
+   ▲ Next.js 15.3.4 (Turbopack)
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.1.2:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 632ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1093ms
+ GET / 307 in 1225ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 686ms
+ GET /dashboard 200 in 815ms
+ ✓ Compiled /favicon.ico in 329ms
+ GET /login 200 in 350ms
+ GET /login 200 in 24ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 429ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 218ms
+ HEAD / 307 in 25ms
+ HEAD /login 200 in 40ms
+ ○ Compiling /inventory ...
+ ✓ Compiled /inventory in 570ms
+ GET /inventory 200 in 591ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 219ms
+ ✓ Compiled in 98ms
+ ✓ Compiled in 74ms
+ ✓ Compiled in 238ms
+ ✓ Compiled in 82ms
+ ✓ Compiled in 67ms
+ GET /inventory 200 in 264ms
+ GET /login 200 in 28ms
+ GET /login 200 in 22ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 219ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 216ms
+ GET /inventory 200 in 34ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 218ms
+ ✓ Compiled /_not-found/page in 410ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 441ms
+ GET /inventory 200 in 66ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 53ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 234ms
+ GET /inventory 200 in 51ms
+ GET /login 200 in 26ms
+ GET /login 200 in 21ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 218ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 220ms
+ GET /inventory 200 in 35ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 220ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 30ms
+ GET /inventory 200 in 68ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 80ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 218ms

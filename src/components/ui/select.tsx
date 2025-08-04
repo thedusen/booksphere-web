@@ -13,14 +13,14 @@ const SelectTrigger = React.forwardRef<
     <RadixSelect.Trigger
         ref={ref}
         className={cn(
-            "flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+            "flex h-touch-target w-full items-center justify-between rounded-lg border border-input bg-gradient-to-br from-background to-lavender-50/20 px-sm py-xs text-base shadow-elevation-1 animate-spring hover:shadow-elevation-2 hover:border-secondary focus:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:shadow-elevation-2 focus-visible:bg-gradient-to-br focus-visible:from-background focus-visible:to-primary/5 disabled:cursor-not-allowed disabled:opacity-50",
             className
         )}
         {...props}
     >
         {children}
         <RadixSelect.Icon asChild>
-            <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+            <ChevronDown className="ml-2 h-4 w-4 opacity-50 transition-transform data-[state=open]:rotate-180" />
         </RadixSelect.Icon>
     </RadixSelect.Trigger>
 ));
@@ -34,7 +34,7 @@ const SelectContent = React.forwardRef<
         <RadixSelect.Content
             ref={ref}
             className={cn(
-                "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-80",
+                "z-50 min-w-[8rem] overflow-hidden rounded-lg border border-neutral-200/60 bg-gradient-to-br from-popover via-popover to-lavender-50/20 p-1 text-popover-foreground shadow-elevation-4 backdrop-blur-sm animate-in fade-in-80 zoom-in-95",
                 className
             )}
             {...props}
@@ -64,7 +64,7 @@ const SelectItem = React.forwardRef<
     <RadixSelect.Item
         ref={ref}
         className={cn(
-            "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-base outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+            "relative flex w-full cursor-pointer select-none items-center rounded-sm py-sm pl-sm pr-8 text-base outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 min-h-[36px]",
             className
         )}
         {...props}

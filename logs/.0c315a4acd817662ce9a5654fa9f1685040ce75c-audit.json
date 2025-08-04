@@ -1,0 +1,25 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/Users/mitch/Documents/Projects/booksphere-web/logs/.0c315a4acd817662ce9a5654fa9f1685040ce75c-audit.json",
+    "files": [
+        {
+            "date": 1754009957522,
+            "name": "/Users/mitch/Documents/Projects/booksphere-web/logs/mcp-puppeteer-2025-07-31.log",
+            "hash": "1899068d69e8c4672f62555d7d061823d80a1a466262eeab382c88a7924d9849"
+        },
+        {
+            "date": 1754058776038,
+            "name": "/Users/mitch/Documents/Projects/booksphere-web/logs/mcp-puppeteer-2025-08-01.log",
+            "hash": "6f49d4801e6d45f0cef36ca8e4ffac1eb550e8d0403177572f415d0b89d02008"
+        },
+        {
+            "date": 1754107638099,
+            "name": "/Users/mitch/Documents/Projects/booksphere-web/logs/mcp-puppeteer-2025-08-02.log",
+            "hash": "bdd4d683f1e0238398eb1d8faaf34de7544b083254cc50c077513fc4dba28eb1"
+        }
+    ],
+    "hashType": "sha256"
+}

@@ -70,9 +70,9 @@ export const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
-            <SheetContent>
+            <SheetContent className="!bg-white dark:!bg-gray-900 border-l border-neutral-200/60 shadow-elevation-4">
                 <SheetHeader>
-                    <SheetTitle>Advanced Filters</SheetTitle>
+                    <SheetTitle className="gradient-text">Advanced Filters</SheetTitle>
                 </SheetHeader>
                 <div className="py-4 space-y-6">
                     <div>
@@ -104,9 +104,15 @@ export const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
                     {/* Publisher filter can be added here once we have the data source */}
                 </div>
                 <SheetFooter>
-                    <Button variant="outline" onClick={handleReset}>Reset</Button>
+                    <Button onClick={handleReset} className="bg-gradient-to-r from-background to-lavender-50/50 border border-neutral-300/40 hover:border-neutral-400/60 hover:bg-gradient-to-r hover:from-neutral-50 hover:to-lavender-50/70 text-foreground">Reset</Button>
                     <SheetClose asChild>
-                        <Button onClick={handleApplyFilters}>Apply Filters</Button>
+                        <Button 
+                            onClick={handleApplyFilters} 
+                            style={{ color: '#ffffff !important' }}
+                            className="bg-gradient-to-r from-primary to-secondary shadow-elevation-2 hover:shadow-elevation-3 glow-purple border-0 [&]:!text-white [&:hover]:!text-white apply-filters-button"
+                        >
+                            Apply Filters
+                        </Button>
                     </SheetClose>
                 </SheetFooter>
             </SheetContent>

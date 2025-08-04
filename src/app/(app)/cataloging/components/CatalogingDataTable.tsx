@@ -228,7 +228,7 @@ export function CatalogingDataTable({
               <Checkbox
                 checked={isAllSelected}
                 ref={(el) => {
-                  if (el) (el as any).indeterminate = isPartiallySelected;
+                  if (el) (el as HTMLInputElement).indeterminate = isPartiallySelected;
                 }}
                 onCheckedChange={handleSelectAll}
                 aria-label="Select all jobs"
