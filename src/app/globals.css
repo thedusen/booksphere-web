@@ -366,8 +366,10 @@ tr[class*="border-b"] {
  * Fix CSS cascade issues where base layer overrides component styles
  */
 
-/* Force skeumorphic input styling to override global border reset */
-input[data-slot="input"] {
+/* Force skeumorphic input styling to override user agent stylesheet */
+input[data-slot="input"],
+input[data-slot="date-input"] {
+  border: 1px solid hsl(var(--input)) !important;
   border-color: hsl(var(--input)) !important;
   background: linear-gradient(135deg, hsl(var(--background)), rgba(250, 249, 254, 0.2)) !important;
   box-shadow: 
@@ -375,7 +377,9 @@ input[data-slot="input"] {
     0 1px 3px rgba(42, 37, 46, 0.1) !important;
 }
 
-input[data-slot="input"]:focus-visible {
+input[data-slot="input"]:focus-visible,
+input[data-slot="date-input"]:focus-visible {
+  border: 1px solid hsl(var(--primary)) !important;
   border-color: hsl(var(--primary)) !important;
   background: linear-gradient(135deg, hsl(var(--background)), rgba(147, 51, 234, 0.05)) !important;
   box-shadow: 
@@ -384,7 +388,9 @@ input[data-slot="input"]:focus-visible {
     0 0 0 2px rgba(147, 51, 234, 0.2) !important;
 }
 
-input[data-slot="input"]:hover {
+input[data-slot="input"]:hover,
+input[data-slot="date-input"]:hover {
+  border: 1px solid hsl(var(--secondary)) !important;
   border-color: hsl(var(--secondary)) !important;
   box-shadow: 
     0 3px 6px rgba(42, 37, 46, 0.05),
@@ -421,9 +427,11 @@ input[data-slot="input"]:hover {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(250, 249, 254, 0.3)) !important;
 }
 
-/* Fix select/dropdown borders */
+/* Fix select/dropdown borders to override user agent stylesheet */
 [role="combobox"],
-select {
+select,
+button[role="combobox"] {
+  border: 1px solid hsl(var(--input)) !important;
   border-color: hsl(var(--input)) !important;
   background: linear-gradient(135deg, hsl(var(--background)), rgba(250, 249, 254, 0.2)) !important;
   box-shadow: 
@@ -432,7 +440,9 @@ select {
 }
 
 [role="combobox"]:focus-visible,
-select:focus-visible {
+select:focus-visible,
+button[role="combobox"]:focus-visible {
+  border: 1px solid hsl(var(--primary)) !important;
   border-color: hsl(var(--primary)) !important;
   background: linear-gradient(135deg, hsl(var(--background)), rgba(147, 51, 234, 0.05)) !important;
   box-shadow: 
@@ -441,19 +451,20 @@ select:focus-visible {
     0 0 0 2px rgba(147, 51, 234, 0.2) !important;
 }
 
-/* Fix date input calendar icon positioning */
-input[data-slot="date-input"] {
-  position: relative !important;
-  border-color: hsl(var(--input)) !important;
-  background: linear-gradient(135deg, hsl(var(--background)), rgba(250, 249, 254, 0.2)) !important;
+[role="combobox"]:hover,
+select:hover,
+button[role="combobox"]:hover {
+  border: 1px solid hsl(var(--secondary)) !important;
+  border-color: hsl(var(--secondary)) !important;
   box-shadow: 
-    0 1px 2px rgba(42, 37, 46, 0.05),
-    0 1px 3px rgba(42, 37, 46, 0.1) !important;
+    0 3px 6px rgba(42, 37, 46, 0.05),
+    0 2px 4px rgba(42, 37, 46, 0.1) !important;
 }
 
+/* Fix date input calendar icon positioning - provide space for icon */
 input[data-slot="date-input"]::-webkit-calendar-picker-indicator {
   position: absolute !important;
-  right: 8px !important;
+  right: 12px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
   width: 16px !important;
@@ -466,20 +477,4 @@ input[data-slot="date-input"]::-webkit-calendar-picker-indicator {
 
 input[data-slot="date-input"]:hover::-webkit-calendar-picker-indicator {
   opacity: 1 !important;
-}
-
-input[data-slot="date-input"]:focus-visible {
-  border-color: hsl(var(--primary)) !important;
-  background: linear-gradient(135deg, hsl(var(--background)), rgba(147, 51, 234, 0.05)) !important;
-  box-shadow: 
-    0 3px 6px rgba(42, 37, 46, 0.05),
-    0 2px 4px rgba(42, 37, 46, 0.1),
-    0 0 0 2px rgba(147, 51, 234, 0.2) !important;
-}
-
-input[data-slot="date-input"]:hover {
-  border-color: hsl(var(--secondary)) !important;
-  box-shadow: 
-    0 3px 6px rgba(42, 37, 46, 0.05),
-    0 2px 4px rgba(42, 37, 46, 0.1) !important;
 }
