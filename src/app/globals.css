@@ -461,8 +461,25 @@ button[role="combobox"]:hover {
     0 2px 4px rgba(42, 37, 46, 0.1) !important;
 }
 
+/* Fix Badge component outline variant borders */
+.inline-flex.items-center.rounded-full.border.px-2\.5.py-0\.5 {
+  border-color: hsl(var(--input)) !important;
+}
+
+/* Specifically target outline badge variant */
+div[class*="rounded-full"][class*="border"]:not([class*="border-transparent"]) {
+  border-color: hsl(var(--input)) !important;
+}
+
 /* Fix date input calendar icon positioning - provide space for icon */
-input[data-slot="date-input"]::-webkit-calendar-picker-indicator {
+input[data-slot="date-input"],
+input[type="date"] {
+  position: relative !important;
+}
+
+input[data-slot="date-input"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: block !important;
   position: absolute !important;
   right: 12px !important;
   top: 50% !important;
@@ -473,8 +490,10 @@ input[data-slot="date-input"]::-webkit-calendar-picker-indicator {
   cursor: pointer !important;
   background: transparent !important;
   border: none !important;
+  z-index: 1 !important;
 }
 
-input[data-slot="date-input"]:hover::-webkit-calendar-picker-indicator {
+input[data-slot="date-input"]:hover::-webkit-calendar-picker-indicator,
+input[type="date"]:hover::-webkit-calendar-picker-indicator {
   opacity: 1 !important;
 }
