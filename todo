@@ -4,3 +4,5 @@ refresh page gets stuck on loading organization. requires clearing cache to get 
 - fix design on login page
 - fix design on feature flag page
 - fix background of flagging (and any other) toast
+- if pricese are the same, only have one 
+- correct the  stats up top of inventory

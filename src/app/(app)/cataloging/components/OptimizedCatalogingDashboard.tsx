@@ -162,8 +162,13 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
   console.log('DEBUG - Organization context:', { 
     organizationId, 
     hasOrgId: !!organizationId,
-    queryEnabled: !!organizationId 
+    queryEnabled: !!organizationId,
+    orgType: typeof organizationId,
+    orgLength: organizationId?.length || 0
   });
+
+  // TEMPORARY FIX: Force enable query if organizationId is missing but we're authenticated
+  const forceEnableQuery = true; // Bypass organizationId check temporarily
 
   // Data fetching with React Query
   const {

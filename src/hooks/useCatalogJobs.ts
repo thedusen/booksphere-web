@@ -653,6 +653,16 @@ const fetchCatalogingJobs = async (
 
   const { data: jobs, error: queryError, count } = await query;
 
+  // Debug logging for the actual query
+  console.log('DEBUG - Supabase query result:', {
+    organizationId,
+    filters,
+    jobsCount: jobs?.length || 0,
+    totalCount: count,
+    queryError: queryError?.message,
+    firstJob: jobs?.[0]?.status || 'none'
+  });
+
   if (queryError) {
     throw createErrorHandler('Fetch cataloging jobs')(queryError);
   }
@@ -722,10 +732,19 @@ export const useCatalogingJobs = (filters: Partial<CatalogingJobFilters> = {}) =
     [organizationId, validatedFilters]
   );
 
+  // Debug the organization context issue
+  console.log('DEBUG - useCatalogingJobs hook:', {
+    organizationId,
+    hasOrgId: !!organizationId,
+    orgType: typeof organizationId,
+    validatedFilters,
+    queryKeyLength: queryKey.length
+  });
+
   const query = useQuery({
     queryKey,
     queryFn: () => fetchCatalogingJobs(organizationId || '', validatedFilters),
-    enabled: !!organizationId,
+    enabled: true, // TEMPORARY: Always enable to test if org ID is the issue
     staleTime: 30000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount, error) => {
