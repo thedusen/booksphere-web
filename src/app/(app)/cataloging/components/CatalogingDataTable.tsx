@@ -23,11 +23,7 @@ import {
   RotateCcw, 
   Trash2, 
   ChevronUp, 
-  ChevronDown,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle
+  ChevronDown
 } from 'lucide-react';
 import {
   Table,
@@ -48,6 +44,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { TypedCatalogingJob, getCatalogingJobDisplayStatus } from '@/lib/types/jobs';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -113,33 +110,7 @@ export function CatalogingDataTable({
     </Button>
   );
 
-  // Render status badge with icon
-  const StatusBadge = ({ status }: { status: TypedCatalogingJob['status'] }) => {
-    const getStatusIcon = () => {
-      switch (status) {
-        case 'pending':
-          return <Clock className="h-3 w-3" />;
-        case 'processing':
-          return <AlertCircle className="h-3 w-3" />;
-        case 'completed':
-          return <CheckCircle className="h-3 w-3" />;
-        case 'failed':
-          return <XCircle className="h-3 w-3" />;
-        default:
-          return null;
-      }
-    };
-
-    return (
-      <Badge 
-        variant={status === 'completed' ? 'default' : status === 'failed' ? 'destructive' : 'secondary'}
-        className="flex items-center gap-1 text-xs"
-      >
-        {getStatusIcon()}
-        {getCatalogingJobDisplayStatus(status)}
-      </Badge>
-    );
-  };
+  // Use the skeumorphic StatusBadge component instead of inline implementation
 
   // Render source type badge - using extraction_source from metadata
   const SourceTypeBadge = ({ extractionSource }: { extractionSource: string | null }) => {
@@ -292,7 +263,7 @@ export function CatalogingDataTable({
                 </Link>
               </TableCell>
               <TableCell>
-                <StatusBadge status={job.status} />
+                <StatusBadge status={job.status} className="text-xs" />
               </TableCell>
                              <TableCell>
                  <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || 'image_capture'} />

@@ -6,3 +6,9 @@ refresh page gets stuck on loading organization. requires clearing cache to get 
 - fix background of flagging (and any other) toast
 - if pricese are the same, only have one 
 - correct the  stats up top of inventory
+- fix spacing on inventory items
+
+- remove question mark cursor
+- cataloging jobs aren't showing up
+- cataloging jobs design
+- fix select in cataloging jobs removing header elements
