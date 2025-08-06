@@ -71,9 +71,9 @@ export const useCatalogJobs = (organizationId: string) => {
           console.log('📡 Real-time change received!', {
             eventType: payload.eventType,
             table: payload.table,
-            jobId: payload.new?.job_id || payload.old?.job_id,
-            newStatus: payload.new?.status,
-            oldStatus: payload.old?.status
+            jobId: (payload.new as any)?.job_id || (payload.old as any)?.job_id,
+            newStatus: (payload.new as any)?.status,
+            oldStatus: (payload.old as any)?.status
           });
           // Invalidate the query to force a refetch, which will update the UI
           queryClient.invalidateQueries({ queryKey });
