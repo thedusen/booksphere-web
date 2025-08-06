@@ -242,12 +242,25 @@ const OptimizedJobRow = React.memo(({
     onSelect(job.job_id, checked);
   }, [job.job_id, onSelect]);
 
+  // Handle row click to navigate to job details
+  const handleRowClick = useCallback((e: React.MouseEvent<HTMLTableRowElement>) => {
+    // Don't navigate if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    const isInteractiveElement = target.closest('button, a, input, [role="button"], [role="checkbox"]');
+    
+    if (!isInteractiveElement) {
+      // Navigate to job details page
+      window.location.href = `/cataloging/jobs/${job.job_id}`;
+    }
+  }, [job.job_id]);
+
   return (
     <TableRow 
       className={cn(
         "cursor-pointer hover:bg-muted/50",
         isSelected && "bg-muted/50"
       )}
+      onClick={handleRowClick}
     >
       <TableCell>
         <Checkbox
