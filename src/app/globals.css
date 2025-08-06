@@ -466,26 +466,15 @@ button[role="combobox"]:hover {
 /* Calendar icon styling now handled by DateInput component Tailwind classes */
 
 /*
- * SYSTEMATIC BORDER COLOR FALLBACKS
- * Prevent user agent stylesheet from applying black borders as fallbacks
+ * SURGICAL BADGE OUTLINE FIX
+ * Target only Badge outline variants to prevent black borders
  */
 
-/* Ensure all form elements have proper border color fallbacks */
-input, select, textarea, button {
+/* Surgical fix - targets ONLY Badge outline components */
+.inline-flex.items-center.rounded-full.border.border-input {
   border-color: hsl(var(--input)) !important;
 }
 
-/* Specific targeting for Tailwind border utilities */
-.border:not([class*="border-"]):not([class*="border-transparent"]):not([class*="border-primary"]):not([class*="border-secondary"]) {
-  border-color: hsl(var(--border)) !important;
-}
-
-/* Ensure outline elements use proper border color */
-[class*="outline"]:not([class*="border-transparent"]) {
-  border-color: hsl(var(--input)) !important;
-}
-
-/* Prevent any remaining black border fallbacks */
-* {
-  border-color: hsl(var(--border));
+.inline-flex.items-center.rounded-full.border.border-input:hover {
+  border-color: hsl(var(--primary) / 0.5) !important;
 }
