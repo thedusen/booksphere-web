@@ -158,17 +158,20 @@ export function CatalogingDashboardHeader({
           <h1 className="text-2xl font-bold tracking-tight">Cataloging Jobs</h1>
         </div>
 
-        {/* Status Tabs - Using Radix UI Tabs */}
+        {/* Status Tabs - Enhanced Skeumorphic Design */}
         <Tabs value={currentTab} onValueChange={handleTabChange}>
           <TabsList className="grid w-full grid-cols-5">
             {STATUS_TABS.map((tab) => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="flex items-center gap-2 text-sm"
+                className="flex items-center gap-2"
               >
                 {tab.label}
-                <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                <Badge 
+                  variant="secondary" 
+                  className="h-5 px-1.5 text-xs bg-gradient-to-br from-background/80 to-lavender-50/40 border border-neutral-200/40 shadow-sm"
+                >
                   {getStatusCount(tab.value)}
                 </Badge>
               </TabsTrigger>

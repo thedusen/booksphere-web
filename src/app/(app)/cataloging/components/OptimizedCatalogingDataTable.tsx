@@ -25,12 +25,8 @@
 
 'use client';
 
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import { 
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
   MoreHorizontal, 
   Eye, 
   RotateCcw, 
@@ -48,6 +44,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
@@ -62,7 +59,6 @@ import { cn } from '@/lib/utils';
 import { 
   formatJobDate, 
   SelectionManager, 
-  getStatusBadgeConfig, 
   getSourceTypeLabel,
   performanceMarker,
   memoryTracker,
@@ -101,39 +97,19 @@ interface JobRowProps {
 // ============================================================================
 
 /**
- * Memoized status badge component
+ * Memoized status badge component with color dots
  * Only re-renders when status changes
  */
-const StatusBadge = React.memo(({ status }: { status: TypedCatalogingJob['status'] }) => {
-  const config = getStatusBadgeConfig(status);
-  
-  const IconComponent = useMemo(() => {
-    switch (config.icon) {
-      case 'Clock':
-        return Clock;
-      case 'AlertCircle':
-        return AlertCircle;
-      case 'CheckCircle':
-        return CheckCircle;
-      case 'XCircle':
-        return XCircle;
-      default:
-        return Clock;
-    }
-  }, [config.icon]);
-
+const CatalogingStatusBadge = React.memo(({ status }: { status: TypedCatalogingJob['status'] }) => {
   return (
-    <Badge 
-      variant={config.variant}
-      className="flex items-center gap-1 text-xs"
-    >
-      <IconComponent className="h-3 w-3" />
-      {config.label}
-    </Badge>
+    <StatusBadge 
+      status={status}
+      className="text-xs"
+    />
   );
 });
 
-StatusBadge.displayName = 'StatusBadge';
+CatalogingStatusBadge.displayName = 'CatalogingStatusBadge';
 
 /**
  * Memoized source type badge component
@@ -303,7 +279,7 @@ const OptimizedJobRow = React.memo(({
         </Link>
       </TableCell>
       <TableCell>
-        <StatusBadge status={job.status} />
+        <CatalogingStatusBadge status={job.status} />
       </TableCell>
       <TableCell>
         <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || null} />
@@ -420,20 +396,15 @@ export const OptimizedCatalogingDataTable = React.memo(({
   }, [selectionManager]);
 
   // Memoized event handlers
-  const handleSelectAll = useCallback(() => {
-    onSelectAll(!selectionState.isAllSelected);
-  }, [onSelectAll, selectionState.isAllSelected]);
-
   const handleSelectJob = useCallback((jobId: string, selected: boolean) => {
     onSelectJob(jobId, selected);
   }, [onSelectJob]);
 
   // Performance measurement
-  const startRenderTime = useMemo(() => {
+  useEffect(() => {
     if (enablePerformanceMonitoring) {
       performanceMarker.start('table-render');
     }
-    return Date.now();
   }, [enablePerformanceMonitoring]);
 
   useEffect(() => {

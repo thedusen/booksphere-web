@@ -314,28 +314,36 @@ export const useOptimizedSelection = (jobs: TypedCatalogingJob[]) => {
 // ============================================================================
 
 /**
- * Status badge configuration with memoized computations
+ * Enhanced status badge configuration with color dots and skeumorphic design
  */
 const statusBadgeConfig = {
   pending: {
     variant: 'secondary' as const,
     icon: 'Clock',
     label: 'Pending',
+    dotColor: 'bg-neutral-400',
+    badgeVariant: 'pending' as const,
   },
   processing: {
     variant: 'secondary' as const,
     icon: 'AlertCircle',
     label: 'Processing',
+    dotColor: 'bg-amber-400',
+    badgeVariant: 'processing' as const,
   },
   completed: {
     variant: 'default' as const,
     icon: 'CheckCircle',
     label: 'Ready',
+    dotColor: 'bg-green-500',
+    badgeVariant: 'completed' as const,
   },
   failed: {
     variant: 'destructive' as const,
     icon: 'XCircle',
     label: 'Failed',
+    dotColor: 'bg-red-500',
+    badgeVariant: 'failed' as const,
   },
 } as const;
 
