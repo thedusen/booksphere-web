@@ -158,6 +158,13 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
   // Optimized filter management
   const { filters, updateFilters, clearFilters } = useOptimizedFilters(DEFAULT_FILTERS);
   
+  // Debug logging to identify the root cause
+  console.log('DEBUG - Organization context:', { 
+    organizationId, 
+    hasOrgId: !!organizationId,
+    queryEnabled: !!organizationId 
+  });
+
   // Data fetching with React Query
   const {
     data: jobsData,
@@ -166,6 +173,16 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
     error,
     refetch,
   } = useCatalogingJobs(filters);
+
+  // Debug logging for query state
+  console.log('DEBUG - Query state:', {
+    isLoading,
+    isError,
+    error: error?.message,
+    hasData: !!jobsData,
+    jobCount: jobsData?.jobs?.length || 0,
+    filters
+  });
 
   // Fetch aggregated status counts separately for accurate header counts
   const {
