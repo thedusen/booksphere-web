@@ -15,7 +15,7 @@
 
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { 
   MoreHorizontal, 
@@ -48,7 +48,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog';
-import { TypedCatalogingJob, getCatalogingJobDisplayStatus, getCatalogingJobStatusColor } from '@/lib/types/jobs';
+import { TypedCatalogingJob, getCatalogingJobDisplayStatus } from '@/lib/types/jobs';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
