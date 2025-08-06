@@ -356,8 +356,23 @@ export const getStatusBadgeConfig = (status: TypedCatalogingJob['status']) => {
 
 /**
  * Source type badge configuration with memoized computations
+ * Maps database source_type values to display configuration
  */
 const sourceTypeBadgeConfig = {
+  // Database source_type values
+  image_capture: {
+    variant: 'default' as const,
+    label: 'AI Analysis',
+  },
+  manual_isbn: {
+    variant: 'secondary' as const,
+    label: 'Manual Entry',
+  },
+  isbn_scan: {
+    variant: 'outline' as const,
+    label: 'ISBN Scan',
+  },
+  // Legacy values for backwards compatibility
   ai_analysis: {
     variant: 'default' as const,
     label: 'AI Analysis',
@@ -376,7 +391,7 @@ const sourceTypeBadgeConfig = {
  * Get cached source type badge configuration
  */
 export const getSourceTypeBadgeConfig = (sourceType: string) => {
-  return sourceTypeBadgeConfig[sourceType as keyof typeof sourceTypeBadgeConfig] || sourceTypeBadgeConfig.ai_analysis;
+  return sourceTypeBadgeConfig[sourceType as keyof typeof sourceTypeBadgeConfig] || sourceTypeBadgeConfig.image_capture;
 };
 
 /**

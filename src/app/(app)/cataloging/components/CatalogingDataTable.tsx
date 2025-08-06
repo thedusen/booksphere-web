@@ -295,7 +295,7 @@ export function CatalogingDataTable({
                 <StatusBadge status={job.status} />
               </TableCell>
                              <TableCell>
-                 <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || null} />
+                 <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || 'image_capture'} />
                </TableCell>
               <TableCell>
                 <div className="space-y-1">

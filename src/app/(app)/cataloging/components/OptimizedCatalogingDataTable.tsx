@@ -282,7 +282,7 @@ const OptimizedJobRow = React.memo(({
         <CatalogingStatusBadge status={job.status} />
       </TableCell>
       <TableCell>
-        <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || null} />
+        <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || 'image_capture'} />
       </TableCell>
       <TableCell>
         <DateDisplay dateString={job.created_at} />

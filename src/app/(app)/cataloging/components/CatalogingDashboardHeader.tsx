@@ -160,7 +160,7 @@ export function CatalogingDashboardHeader({
 
         {/* Status Tabs - Enhanced Skeumorphic Design */}
         <Tabs value={currentTab} onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="w-full">
             {STATUS_TABS.map((tab) => (
               <TabsTrigger
                 key={tab.value}

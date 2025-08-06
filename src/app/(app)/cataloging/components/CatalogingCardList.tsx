@@ -213,7 +213,7 @@ export function CatalogingCardList({
                 {/* Metadata Row */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || null} />
+                    <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || 'image_capture'} />
                     {job.extracted_data?.isbn13 && (
                       <span className="font-mono">
                         ISBN: {job.extracted_data.isbn13}
