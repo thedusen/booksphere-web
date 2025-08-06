@@ -34,6 +34,7 @@ import { CatalogingLoadingState } from './CatalogingLoadingState';
 import { CatalogingPagination } from './CatalogingPagination';
 import { useCatalogingJobs, useCatalogingJobStats, useDeleteCatalogingJobs, useRetryCatalogingJobs } from '@/hooks/useCatalogJobs';
 import { useOrganization } from '@/hooks/useOrganization';
+import { useAuth } from '@/context/AuthContext';
 import { CatalogingJobStatus } from '@/lib/types/jobs';
 import { CatalogingJobFilters, CatalogingJobSourceType } from '@/lib/validators/cataloging';
 import { CATALOGING_DEFAULTS } from '@/lib/constants/cataloging';
@@ -129,6 +130,7 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
 }) => {
   // Organization context for multi-tenancy
   const { organizationId } = useOrganization();
+  const { organizationId: authOrgId } = useAuth(); // Test the mobile app approach
   
   // Responsive design state
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -162,13 +164,16 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
   console.log('DEBUG - Organization context:', { 
     organizationId, 
     hasOrgId: !!organizationId,
+    authOrgId,
+    hasAuthOrgId: !!authOrgId,
     queryEnabled: !!organizationId,
     orgType: typeof organizationId,
     orgLength: organizationId?.length || 0
   });
 
-  // TEMPORARY FIX: Force enable query if organizationId is missing but we're authenticated
-  const forceEnableQuery = true; // Bypass organizationId check temporarily
+  // TEMPORARY FIX: Use authOrgId as fallback if organizationId is missing
+  const effectiveOrgId = organizationId || authOrgId;
+  console.log('DEBUG - Effective Org ID:', { effectiveOrgId });
 
   // Data fetching with React Query
   const {

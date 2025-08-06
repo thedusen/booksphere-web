@@ -743,7 +743,7 @@ export const useCatalogingJobs = (filters: Partial<CatalogingJobFilters> = {}) =
 
   const query = useQuery({
     queryKey,
-    queryFn: () => fetchCatalogingJobs(organizationId || '', validatedFilters),
+    queryFn: () => fetchCatalogingJobs(organizationId || 'mock-org-id-for-dev', validatedFilters),
     enabled: true, // TEMPORARY: Always enable to test if org ID is the issue
     staleTime: 30000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
