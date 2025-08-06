@@ -35,6 +35,7 @@ import { CatalogingPagination } from './CatalogingPagination';
 import { useCatalogingJobs, useCatalogingJobStats, useDeleteCatalogingJobs, useRetryCatalogingJobs } from '@/hooks/useCatalogJobs';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useAuth } from '@/context/AuthContext';
+import { useCatalogJobs } from '@/hooks/useCatalogJobsSimple'; // Simple mobile app approach
 import { CatalogingJobStatus } from '@/lib/types/jobs';
 import { CatalogingJobFilters, CatalogingJobSourceType } from '@/lib/validators/cataloging';
 import { CATALOGING_DEFAULTS } from '@/lib/constants/cataloging';
@@ -175,7 +176,10 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
   const effectiveOrgId = organizationId || authOrgId;
   console.log('DEBUG - Effective Org ID:', { effectiveOrgId });
 
-  // Data fetching with React Query
+  // SIMPLIFIED APPROACH: Use mobile app pattern with useAuth
+  const { data: simpleJobs, isLoading: simpleLoading, error: simpleError, refetch: simpleRefetch } = useCatalogJobs(authOrgId || '');
+  
+  // Keep the original complex approach for comparison
   const {
     data: jobsData,
     isLoading,
@@ -184,13 +188,21 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
     refetch,
   } = useCatalogingJobs(filters);
 
-  // Debug logging for query state
-  console.log('DEBUG - Query state:', {
-    isLoading,
-    isError,
-    error: error?.message,
-    hasData: !!jobsData,
-    jobCount: jobsData?.jobs?.length || 0,
+  // Debug logging for both approaches
+  console.log('🔄 COMPARISON - Simple vs Complex approach:', {
+    // Simple approach
+    simpleJobsCount: simpleJobs?.length || 0,
+    simpleLoading,
+    simpleError: simpleError?.message,
+    
+    // Complex approach  
+    complexJobsCount: jobsData?.jobs?.length || 0,
+    complexLoading: isLoading,
+    complexError: error?.message,
+    
+    // Context
+    authOrgId,
+    effectiveOrgId,
     filters
   });
 
@@ -200,20 +212,35 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
     isLoading: isStatsLoading,
   } = useCatalogingJobStats();
   
-  // Memoized derived state for performance
+  // Use simple jobs data if available, otherwise fall back to complex approach
   const { jobs, totalCount, hasMore } = useMemo(() => {
-    if (!jobsData) return { 
-      jobs: [], 
-      totalCount: 0, 
-      hasMore: false,
+    // Prefer simple approach if it has data
+    if (simpleJobs && simpleJobs.length > 0) {
+      console.log('✅ Using SIMPLE jobs data:', simpleJobs.length, 'jobs');
+      return {
+        jobs: simpleJobs,
+        totalCount: simpleJobs.length,
+        hasMore: false, // Simple approach doesn't use pagination
+      };
+    }
+    
+    // Fall back to complex approach
+    if (!jobsData) {
+      console.log('❌ No data from either approach');
+      return { 
+        jobs: [], 
+        totalCount: 0, 
+        hasMore: false,
+      };
     };
     
+    console.log('📊 Using COMPLEX jobs data:', jobsData.jobs?.length || 0, 'jobs');
     return {
       jobs: jobsData.jobs,
       totalCount: jobsData.total_count,
       hasMore: jobsData.has_more,
     };
-  }, [jobsData]);
+  }, [simpleJobs, jobsData]);
 
   // Optimized selection management
   const { 
@@ -420,7 +447,7 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
       {/* Main Content Area */}
       <div className="space-y-4">
         {/* Loading State */}
-        {isLoading && (
+        {(isLoading || simpleLoading) && (
           <CatalogingLoadingState isMobile={isMobile} />
         )}
         
