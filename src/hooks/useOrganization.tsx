@@ -157,13 +157,14 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
                 jwtOrgId = session.data.session?.user?.user_metadata?.organization_id;
             }
             
-            console.log('JWT Claims Debug:', {
+            console.log('🔍 ORGANIZATION DEBUG - JWT Claims:', {
                 hasSession: !!session.data.session,
                 hasClaims: !!claims,
                 jwtOrgId,
                 appMetadata: claims,
                 userMetadata: session.data.session?.user?.user_metadata,
-                retryCount
+                retryCount,
+                userId: currentUser.id
             });
 
             // Run detailed JWT configuration debug on first attempt
