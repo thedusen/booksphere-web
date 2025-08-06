@@ -11,6 +11,7 @@ import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DateInput } from '@/components/ui/date-input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -100,7 +101,7 @@ export function CatalogingDashboardHeader({
   // Render bulk action bar
   if (hasBulkSelection) {
     return (
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-background/95 to-lavender-50/30 backdrop-blur-sm border-b border-neutral-200/60">
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-background/95 to-lavender-50/30 backdrop-blur-sm">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Badge variant="secondary" className="text-sm">
@@ -151,7 +152,7 @@ export function CatalogingDashboardHeader({
   }
 
   return (
-    <div className="sticky top-0 z-10 bg-gradient-to-r from-background/95 to-lavender-50/30 backdrop-blur-sm border-b border-neutral-200/60">
+    <div className="sticky top-0 z-10 bg-gradient-to-r from-background/95 to-lavender-50/30 backdrop-blur-sm">
       <div className="space-y-4 px-4 py-4">
         {/* Page Title */}
         <div className="flex items-center justify-between">
@@ -222,8 +223,7 @@ export function CatalogingDashboardHeader({
 
           {/* Date Range Filter - Simplified */}
           <div className="flex items-center gap-2">
-            <Input
-              type="date"
+            <DateInput
               value={filters.date_from ? filters.date_from.split('T')[0] : ''}
               onChange={(e) => {
                 const date = e.target.value;
@@ -238,11 +238,10 @@ export function CatalogingDashboardHeader({
                 }
               }}
               className="w-[130px]"
-              placeholder="From date"
+              placeholder="mm/dd/yyyy"
             />
             <span className="text-muted-foreground text-sm">to</span>
-            <Input
-              type="date"
+            <DateInput
               value={filters.date_to ? filters.date_to.split('T')[0] : ''}
               onChange={(e) => {
                 const date = e.target.value;
@@ -257,7 +256,7 @@ export function CatalogingDashboardHeader({
                 }
               }}
               className="w-[130px]"
-              placeholder="To date"
+              placeholder="mm/dd/yyyy"
             />
           </div>
 
