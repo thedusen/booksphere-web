@@ -470,11 +470,22 @@ button[role="combobox"]:hover {
  * Target only Badge outline variants to prevent black borders
  */
 
-/* Surgical fix - targets ONLY Badge outline components */
+/* Surgical fix - targets Badge outline components with border-input class */
 .inline-flex.items-center.rounded-full.border.border-input {
   border-color: hsl(var(--input)) !important;
 }
 
 .inline-flex.items-center.rounded-full.border.border-input:hover {
+  border-color: hsl(var(--primary) / 0.5) !important;
+}
+
+/* Surgical fix - targets inline SourceTypeBadge components using generic outline variant */
+.inline-flex.items-center.rounded-full.border.text-foreground:not(.border-transparent):not([class*="border-primary"]):not([class*="border-secondary"]) {
+  border-color: hsl(var(--input)) !important;
+  background: transparent !important;
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.inline-flex.items-center.rounded-full.border.text-foreground:not(.border-transparent):not([class*="border-primary"]):not([class*="border-secondary"]):hover {
   border-color: hsl(var(--primary) / 0.5) !important;
 }
