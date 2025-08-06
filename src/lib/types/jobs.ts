@@ -167,8 +167,13 @@ export function isCatalogingJobImageUrls(value: unknown): value is CatalogingJob
   
   // All fields are optional, but if present must be strings or string arrays
   if (urls.cover_url !== undefined && typeof urls.cover_url !== 'string') return false;
+  
+  // Accept both naming conventions for backward compatibility
   if (urls.title_page_url !== undefined && typeof urls.title_page_url !== 'string') return false;
+  if (urls.title_url !== undefined && typeof urls.title_url !== 'string') return false;
   if (urls.copyright_page_url !== undefined && typeof urls.copyright_page_url !== 'string') return false;
+  if (urls.copyright_url !== undefined && typeof urls.copyright_url !== 'string') return false;
+  
   if (urls.additional_images !== undefined && !Array.isArray(urls.additional_images)) return false;
   
   return true;

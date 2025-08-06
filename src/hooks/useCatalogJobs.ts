@@ -646,10 +646,41 @@ const fetchCatalogingJobs = async (
     );
   }
 
-  // Apply pagination
+  // Apply pagination with bounds checking
   const from = (filters.page - 1) * filters.limit;
   const to = from + filters.limit - 1;
-  query = query.range(from, to);
+  
+  // First check if we have any data at all to prevent unnecessary range requests
+  const countQuery = supabase
+    .from('cataloging_jobs')
+    .select('*', { count: 'exact', head: true })
+    .eq('organization_id', organizationId);
+  
+  // Apply same filters for count
+  if (filters.status) countQuery.eq('status', filters.status);
+  if (filters.source_type) countQuery.eq('source_type', filters.source_type);
+  if (filters.user_id) countQuery.eq('user_id', filters.user_id);
+  if (filters.date_from) countQuery.gte('created_at', filters.date_from);
+  if (filters.date_to) countQuery.lte('created_at', filters.date_to);
+  if (filters.search_query) {
+    countQuery.or(
+      `extracted_data->title.ilike.%${filters.search_query}%,` +
+      `job_id.ilike.%${filters.search_query}%`
+    );
+  }
+  
+  const { count: totalCount } = await countQuery;
+  
+  // If requesting data beyond available rows, adjust to last valid page
+  if (totalCount !== null && from >= totalCount && totalCount > 0) {
+    const lastPage = Math.ceil(totalCount / filters.limit);
+    const adjustedFrom = (lastPage - 1) * filters.limit;
+    const adjustedTo = adjustedFrom + filters.limit - 1;
+    query = query.range(adjustedFrom, adjustedTo);
+    console.warn(`Pagination adjusted from page ${filters.page} to page ${lastPage} due to data bounds`);
+  } else {
+    query = query.range(from, to);
+  }
 
   const { data: jobs, error: queryError, count } = await query;
 
@@ -684,7 +715,22 @@ const fetchCatalogingJobs = async (
       };
 
       if (!isTypedCatalogingJob(typedJob)) {
-        console.warn('Invalid cataloging job structure:', typedJob);
+        console.warn('Invalid cataloging job structure:', {
+          jobId: typedJob.job_id,
+          validationDetails: {
+            hasJobId: !!typedJob.job_id,
+            hasOrgId: !!typedJob.organization_id,
+            hasUserId: !!typedJob.user_id,
+            hasStatus: !!typedJob.status,
+            hasCreatedAt: !!typedJob.created_at,
+            hasUpdatedAt: !!typedJob.updated_at,
+            extractedDataType: typedJob.extracted_data === null ? 'null' : typeof typedJob.extracted_data,
+            imageUrlsType: typedJob.image_urls === null ? 'null' : typeof typedJob.image_urls,
+            extractedDataValid: typedJob.extracted_data === null || isBookMetadata(typedJob.extracted_data),
+            imageUrlsValid: typedJob.image_urls === null || isCatalogingJobImageUrls(typedJob.image_urls),
+          },
+          fullJob: typedJob
+        });
         return null;
       }
 
@@ -743,7 +789,7 @@ export const useCatalogingJobs = (filters: Partial<CatalogingJobFilters> = {}) =
 
   const query = useQuery({
     queryKey,
-    queryFn: () => fetchCatalogingJobs(organizationId || 'mock-org-id-for-dev', validatedFilters),
+    queryFn: () => fetchCatalogingJobs(organizationId || '00000000-0000-0000-0000-000000000000', validatedFilters),
     enabled: true, // TEMPORARY: Always enable to test if org ID is the issue
     staleTime: 30000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
@@ -873,8 +919,22 @@ export const useCatalogingJob = (jobId: string) => {
         };
 
         if (!isTypedCatalogingJob(typedJob)) {
+          console.error('Invalid cataloging job structure detected:', {
+            jobId: typedJob.job_id,
+            missingFields: {
+              hasJobId: !!typedJob.job_id,
+              hasOrgId: !!typedJob.organization_id,
+              hasUserId: !!typedJob.user_id,
+              hasStatus: !!typedJob.status,
+              hasCreatedAt: !!typedJob.created_at,
+              hasUpdatedAt: !!typedJob.updated_at,
+              extractedDataValid: typedJob.extracted_data === null || isBookMetadata(typedJob.extracted_data),
+              imageUrlsValid: typedJob.image_urls === null || isCatalogingJobImageUrls(typedJob.image_urls),
+            },
+            actualJob: typedJob
+          });
           throw new CatalogingJobError(
-            'Invalid cataloging job structure',
+            'Invalid cataloging job structure - check console for detailed validation errors',
             'INVALID_JOB_STRUCTURE',
             { job: typedJob },
             false

@@ -177,8 +177,8 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
   console.log('DEBUG - Effective Org ID:', { effectiveOrgId });
 
   // SIMPLIFIED APPROACH: Use mobile app pattern with useAuth
-  // Try different organization IDs to find which one works
-  const testOrgId = organizationId || authOrgId || 'mock-org-id-for-dev';
+  // Use a valid UUID format for development fallback to prevent PostgreSQL UUID syntax errors
+  const testOrgId = organizationId || authOrgId || '00000000-0000-0000-0000-000000000000';
   console.log('🔍 Testing with organization ID:', testOrgId);
   const { data: simpleJobs, isLoading: simpleLoading, error: simpleError, refetch: simpleRefetch } = useCatalogJobs(testOrgId);
   
