@@ -52,7 +52,9 @@ import {
   isCatalogingJobInProgress,
   isCatalogingJobStatus,
   BookMetadata,
-  CatalogingJobImageUrls
+  CatalogingJobImageUrls,
+  isBookMetadata,
+  isCatalogingJobImageUrls
 } from '@/lib/types/jobs';
 import { 
   catalogingJobCreateRequestSchema, 
