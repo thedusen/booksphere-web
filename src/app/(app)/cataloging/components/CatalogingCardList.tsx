@@ -56,14 +56,15 @@ export function CatalogingCardList({
 }: CatalogingCardListProps) {
   // Smart routing function to determine correct link destination
   const getJobLink = (job: TypedCatalogingJob): string => {
-    if (job.status === 'completed' && job.extracted_data?.isbn13) {
-      // AI Analysis jobs → Review flow (needs human verification)
-      if (job.extracted_data.extraction_source === 'ai_analysis') {
-        return `/cataloging/review/${job.extracted_data.isbn13}`;
+    if (job.status === 'completed') {
+      // AI Analysis jobs → Job-based review flow (handles non-ISBN books)
+      if (job.extracted_data?.extraction_source === 'ai_analysis') {
+        return `/cataloging/jobs/${job.job_id}/review`;
       }
-      // ISBN-based jobs → Add to Inventory (data already verified)  
-      if (job.extracted_data.extraction_source === 'isbn_lookup') {
-        return `/cataloging/add-to-inventory?isbn=${job.extracted_data.isbn13}`;
+      // ISBN-based jobs → ISBN review flow or direct to inventory
+      if (job.extracted_data?.extraction_source === 'isbn_lookup' && job.extracted_data?.isbn13) {
+        // For now, route to ISBN review flow - can be optimized later to skip review
+        return `/cataloging/review/${job.extracted_data.isbn13}`;
       }
     }
     // All other jobs → Job details page
