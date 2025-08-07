@@ -227,3 +227,9 @@ NEXT_PUBLIC_API_BASE_URL=https://buildship-api-url.com
 - Runs on port 3001 (configured in package.json)
 - Access at http://localhost:3001/
 - Uses Turbopack for fast refresh
+```
+
+## Data Governance
+
+- **Platform Data Policies**:
+  - The books table - and all associated tables (editions, authors, publishers, etc.) are not editable by the user, only by the platform administrators. The comprehensive book database is used globally by all users. The only tables that a user can edit are the tables associated with their stock items
