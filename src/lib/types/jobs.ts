@@ -125,17 +125,10 @@ export function isBookMetadata(value: unknown): value is BookMetadata {
   
   const metadata = value as Record<string, unknown>;
   
-  // Enhanced debug - log the actual data structure we're validating
-  console.log('🔍 BookMetadata validation input:', {
-    extraction_source: metadata.extraction_source,
-    title: metadata.title,
-    keys: Object.keys(metadata),
-    fullData: JSON.stringify(value, null, 2)
-  });
-  
-  // Check if title exists at all
-  if (!metadata.title) {
-    console.error('❌ BookMetadata validation failed: title is missing entirely', { 
+  // SIMPLIFIED VALIDATION: Only require title to exist and be a non-empty string
+  // This allows both AI Analysis jobs (no ISBN) and ISBN-based jobs to pass
+  if (!metadata.title || typeof metadata.title !== 'string' || metadata.title.length === 0) {
+    console.error('❌ BookMetadata validation failed: title is missing, not a string, or empty', { 
       title: metadata.title, 
       titleType: typeof metadata.title,
       allKeys: Object.keys(metadata)
@@ -143,23 +136,7 @@ export function isBookMetadata(value: unknown): value is BookMetadata {
     return false;
   }
   
-  // Lenient validation for AI analysis (human will review anyway)
-  if (metadata.extraction_source === 'ai_analysis') {
-    // Only require title for AI analysis jobs - everything else is optional
-    if (typeof metadata.title !== 'string' || metadata.title.length === 0) {
-      console.error('❌ BookMetadata validation failed for AI analysis: title missing or empty', { title: metadata.title });
-      return false;
-    }
-    console.log('✅ AI Analysis job passed lenient validation');
-    return true;
-  }
-  
-  // Strict validation for non-AI sources (ISBN lookup, manual entry)
-  // Title is required
-  if (typeof metadata.title !== 'string') {
-    console.error('BookMetadata validation failed: title is not a string', { title: metadata.title, type: typeof metadata.title });
-    return false;
-  }
+  console.log('✅ BookMetadata validation passed for title:', metadata.title);
   
   // Optional fields type checking
   if (metadata.subtitle !== undefined && typeof metadata.subtitle !== 'string') return false;
@@ -210,7 +187,7 @@ export function isBookMetadata(value: unknown): value is BookMetadata {
       return false;
     }
   }
-  if (metadata.extraction_source !== undefined && !['ai_analysis', 'isbn_lookup', 'manual_entry', 'image_capture'].includes(metadata.extraction_source as string)) {
+  if (metadata.extraction_source !== undefined && typeof metadata.extraction_source !== 'string') {
     return false;
   }
   if (metadata.description !== undefined && typeof metadata.description !== 'string') return false;
