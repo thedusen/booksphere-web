@@ -1,5 +1,6 @@
 import { Database } from '@/lib/supabase/types';
 import { CATALOGING_STATUS_LABELS, CATALOGING_STATUS_COLORS } from '@/lib/constants/cataloging';
+import { validateBookMetadataCacheBusted } from './validation-bypass';
 
 // Use generated Supabase types for cataloging jobs
 export type CatalogingJob = Database['public']['Tables']['cataloging_jobs']['Row'];
@@ -278,7 +279,7 @@ export function isTypedCatalogingJob(value: unknown): value is TypedCatalogingJo
       data: job.extracted_data
     });
     
-    if (!isBookMetadataV2(job.extracted_data)) {
+    if (!validateBookMetadataCacheBusted(job.extracted_data)) {
       console.error('❌ isTypedCatalogingJob: extracted_data failed BookMetadata validation');
       return false;
     }
