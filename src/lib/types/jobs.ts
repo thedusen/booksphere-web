@@ -119,20 +119,35 @@ export function isCatalogingJobStatus(value: unknown): value is CatalogingJobSta
 
 export function isBookMetadata(value: unknown): value is BookMetadata {
   if (!value || typeof value !== 'object') {
-    console.error('BookMetadata validation failed: value is not an object', { value, type: typeof value });
+    console.error('❌ BookMetadata validation failed: value is not an object', { value, type: typeof value });
     return false;
   }
   
   const metadata = value as Record<string, unknown>;
   
-  // Temporary debug - log the actual data structure we're validating
-  console.log('BookMetadata validation input:', JSON.stringify(value, null, 2));
+  // Enhanced debug - log the actual data structure we're validating
+  console.log('🔍 BookMetadata validation input:', {
+    extraction_source: metadata.extraction_source,
+    title: metadata.title,
+    keys: Object.keys(metadata),
+    fullData: JSON.stringify(value, null, 2)
+  });
+  
+  // Check if title exists at all
+  if (!metadata.title) {
+    console.error('❌ BookMetadata validation failed: title is missing entirely', { 
+      title: metadata.title, 
+      titleType: typeof metadata.title,
+      allKeys: Object.keys(metadata)
+    });
+    return false;
+  }
   
   // Lenient validation for AI analysis (human will review anyway)
   if (metadata.extraction_source === 'ai_analysis') {
     // Only require title for AI analysis jobs - everything else is optional
     if (typeof metadata.title !== 'string' || metadata.title.length === 0) {
-      console.error('BookMetadata validation failed for AI analysis: title missing or empty', { title: metadata.title });
+      console.error('❌ BookMetadata validation failed for AI analysis: title missing or empty', { title: metadata.title });
       return false;
     }
     console.log('✅ AI Analysis job passed lenient validation');

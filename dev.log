@@ -2,14 +2,51 @@
 > booksphere-web@0.1.0 dev
 > next dev --turbopack --port 3001
 
- ⨯ Failed to start server
-Error: listen EADDRINUSE: address already in use :::3001
-    at <unknown> (Error: listen EADDRINUSE: address already in use :::3001)
-    at new Promise (<anonymous>) {
-  code: 'EADDRINUSE',
-  errno: -48,
-  syscall: 'listen',
-  address: '::',
-  port: 3001
+   ▲ Next.js 15.3.4 (Turbopack)
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.1.2:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 646ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 1392ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.ifry40smij'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.ifry40smij'
+}
+ ✓ Compiled /_error in 367ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.41ejujiwfhg'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.41ejujiwfhg'
+}
+[Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.ifry40smij'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.ifry40smij'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.stxkur7hk6h'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.stxkur7hk6h'
+}
+[Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.gnpj3lze865'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.gnpj3lze865'
+}
+ ✓ Compiled /favicon.ico in 145ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.h5cylk1i4xs'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.h5cylk1i4xs'
 }
 [?25h
