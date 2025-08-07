@@ -292,9 +292,20 @@ export function isTypedCatalogingJob(value: unknown): value is TypedCatalogingJo
   }
   
   // Optional fields - more permissive validation
-  if (job.extracted_data !== null && job.extracted_data !== undefined && !isBookMetadata(job.extracted_data)) {
-    console.error('❌ isTypedCatalogingJob: extracted_data failed BookMetadata validation');
-    return false;
+  if (job.extracted_data !== null && job.extracted_data !== undefined) {
+    console.log('🔍 About to validate extracted_data:', {
+      type: typeof job.extracted_data,
+      isObject: typeof job.extracted_data === 'object',
+      keys: job.extracted_data && typeof job.extracted_data === 'object' ? Object.keys(job.extracted_data) : 'N/A',
+      data: job.extracted_data
+    });
+    
+    if (!isBookMetadata(job.extracted_data)) {
+      console.error('❌ isTypedCatalogingJob: extracted_data failed BookMetadata validation');
+      return false;
+    }
+  } else {
+    console.log('🔍 extracted_data is null or undefined:', job.extracted_data);
   }
   if (job.image_urls !== null && job.image_urls !== undefined && !isCatalogingJobImageUrls(job.image_urls)) {
     console.error('❌ isTypedCatalogingJob: image_urls failed validation');
