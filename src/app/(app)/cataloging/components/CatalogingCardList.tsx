@@ -54,6 +54,22 @@ export function CatalogingCardList({
   onDeleteJob,
   onRetryJob,
 }: CatalogingCardListProps) {
+  // Smart routing function to determine correct link destination
+  const getJobLink = (job: TypedCatalogingJob): string => {
+    if (job.status === 'completed' && job.extracted_data?.isbn13) {
+      // AI Analysis jobs → Review flow (needs human verification)
+      if (job.extracted_data.extraction_source === 'ai_analysis') {
+        return `/cataloging/review/${job.extracted_data.isbn13}`;
+      }
+      // ISBN-based jobs → Add to Inventory (data already verified)  
+      if (job.extracted_data.extraction_source === 'isbn_lookup') {
+        return `/cataloging/add-to-inventory?isbn=${job.extracted_data.isbn13}`;
+      }
+    }
+    // All other jobs → Job details page
+    return `/cataloging/jobs/${job.job_id}`;
+  };
+
   // Use the skeumorphic StatusBadge component instead of inline implementation
 
   // Render source type badge - using extraction_source from metadata
@@ -165,7 +181,7 @@ export function CatalogingCardList({
 
               {/* Main Content */}
               <Link 
-                href={`/cataloging/jobs/${job.job_id}`}
+                href={getJobLink(job)}
                 className="block space-y-2"
               >
                 <div className="space-y-1">
