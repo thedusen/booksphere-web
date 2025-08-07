@@ -237,30 +237,69 @@ export function isCatalogingJobImageUrls(value: unknown): value is CatalogingJob
 }
 
 export function isTypedCatalogingJob(value: unknown): value is TypedCatalogingJob {
-  if (!value || typeof value !== 'object') return false;
+  if (!value || typeof value !== 'object') {
+    console.error('❌ isTypedCatalogingJob: value is not an object', { value, type: typeof value });
+    return false;
+  }
   
   const job = value as Record<string, unknown>;
   
+  console.log('🔍 Starting TypedCatalogingJob validation for:', {
+    job_id: job.job_id,
+    extraction_source: job.extracted_data && typeof job.extracted_data === 'object' ? (job.extracted_data as any).extraction_source : 'N/A'
+  });
+  
   
   // Required fields
-  if (typeof job.job_id !== 'string') return false;
-  if (typeof job.organization_id !== 'string') return false;
-  if (typeof job.user_id !== 'string') return false;
-  if (typeof job.created_at !== 'string') return false;
-  if (typeof job.updated_at !== 'string') return false;
-  if (!isCatalogingJobStatus(job.status)) return false;
+  if (typeof job.job_id !== 'string') {
+    console.error('❌ isTypedCatalogingJob: job_id is not a string', { job_id: job.job_id, type: typeof job.job_id });
+    return false;
+  }
+  if (typeof job.organization_id !== 'string') {
+    console.error('❌ isTypedCatalogingJob: organization_id is not a string', { organization_id: job.organization_id, type: typeof job.organization_id });
+    return false;
+  }
+  if (typeof job.user_id !== 'string') {
+    console.error('❌ isTypedCatalogingJob: user_id is not a string', { user_id: job.user_id, type: typeof job.user_id });
+    return false;
+  }
+  if (typeof job.created_at !== 'string') {
+    console.error('❌ isTypedCatalogingJob: created_at is not a string', { created_at: job.created_at, type: typeof job.created_at });
+    return false;
+  }
+  if (typeof job.updated_at !== 'string') {
+    console.error('❌ isTypedCatalogingJob: updated_at is not a string', { updated_at: job.updated_at, type: typeof job.updated_at });
+    return false;
+  }
+  if (!isCatalogingJobStatus(job.status)) {
+    console.error('❌ isTypedCatalogingJob: invalid status', { status: job.status });
+    return false;
+  }
   
   // Optional fields - more permissive validation
-  if (job.extracted_data !== null && job.extracted_data !== undefined && !isBookMetadata(job.extracted_data)) return false;
-  if (job.image_urls !== null && job.image_urls !== undefined && !isCatalogingJobImageUrls(job.image_urls)) return false;
+  if (job.extracted_data !== null && job.extracted_data !== undefined && !isBookMetadata(job.extracted_data)) {
+    console.error('❌ isTypedCatalogingJob: extracted_data failed BookMetadata validation');
+    return false;
+  }
+  if (job.image_urls !== null && job.image_urls !== undefined && !isCatalogingJobImageUrls(job.image_urls)) {
+    console.error('❌ isTypedCatalogingJob: image_urls failed validation');
+    return false;
+  }
   if (job.error_message !== null && job.error_message !== undefined && typeof job.error_message !== 'string') return false;
 
   // More permissive validation for matched_edition_ids
   if (job.matched_edition_ids !== null && job.matched_edition_ids !== undefined) {
-    if (!Array.isArray(job.matched_edition_ids)) return false;
-    if (job.matched_edition_ids.some(id => typeof id !== 'string')) return false;
+    if (!Array.isArray(job.matched_edition_ids)) {
+      console.error('❌ isTypedCatalogingJob: matched_edition_ids is not an array');
+      return false;
+    }
+    if (job.matched_edition_ids.some(id => typeof id !== 'string')) {
+      console.error('❌ isTypedCatalogingJob: matched_edition_ids contains non-string values');
+      return false;
+    }
   }
   
+  console.log('✅ isTypedCatalogingJob: validation passed for job:', job.job_id);
   return true;
 }
 
