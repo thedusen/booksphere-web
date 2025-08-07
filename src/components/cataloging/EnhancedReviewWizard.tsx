@@ -264,9 +264,9 @@ export function EnhancedReviewWizard({ job, onComplete, onCancel }: EnhancedRevi
     setFormData(prev => ({
       ...prev,
       title: match.title,
-      subtitle: match.subtitle,
-      publisher: match.publisher_name,
-      publication_year: match.publication_year,
+      subtitle: match.subtitle || '',
+      publisher: match.publisher_name || '',
+      publication_year: match.publication_year ?? null,
     }));
     
     // Update contributors if available

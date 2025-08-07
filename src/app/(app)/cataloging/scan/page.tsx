@@ -24,8 +24,8 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
 
-// Import QuaggaJS properly (instead of CDN)
-import Quagga from 'quagga';
+// Import QuaggaJS with type assertion
+const Quagga = require('quagga') as any;
 
 
 // QuaggaJS types
@@ -49,48 +49,27 @@ export default function BarcodeScanPage() {
   const [cameraPermission, setCameraPermission] = useState<'prompt' | 'granted' | 'denied'>('prompt');
   const [isFlashOn, setIsFlashOn] = useState(false);
   const [flashSupported, setFlashSupported] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Initialize camera and scanner
-  const initializeScanner = useCallback(async () => {
-    try {
-      setScannerState('initializing');
-
-      // Request camera permission
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment', // Prefer rear camera
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
-      });
-      
-      streamRef.current = stream;
-      setCameraPermission('granted');
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-
-      // Check if flash/torch is supported
-      const videoTrack = stream.getVideoTracks()[0];
-      const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
-      setFlashSupported(!!(capabilities as MediaTrackCapabilities & { torch?: boolean }).torch);
-
-      // Initialize QuaggaJS scanner
-      startQuagga();
-
-    } catch (error) {
-      console.error('Camera initialization failed:', error);
-      setCameraPermission('denied');
-      setScannerState('error');
-      if (error instanceof Error && error.name === 'NotAllowedError') {
-        toast.error('Camera permission denied. Please enable camera access to scan barcodes.');
-      } else {
-        toast.error('Failed to initialize camera. You can still enter ISBN manually.');
-      }
+  // Handle detected barcode (matches mobile app flow)
+  const handleBarcodeDetected = useCallback((isbn: string) => {
+    // Validate the detected ISBN
+    if (!validateISBN(isbn)) {
+      toast.error('Invalid barcode detected. Please try again.');
+      return;
     }
-  }, [startQuagga]);
+
+    // Stop scanner
+    if (scannerRef.current) {
+      Quagga.stop();
+    }
+    setScannerState('ready');
+
+    // Navigate to review page with ISBN (matches mobile app)
+    router.push(`/cataloging/review/${isbn}`);
+    
+    toast.success('Barcode detected! Loading book details...');
+  }, [router]);
 
   // Start QuaggaJS scanner
   const startQuagga = useCallback(() => {
@@ -144,26 +123,6 @@ export default function BarcodeScanPage() {
     });
   }, [handleBarcodeDetected]);
 
-  // Handle detected barcode (matches mobile app flow)
-  const handleBarcodeDetected = useCallback((isbn: string) => {
-    // Validate the detected ISBN
-    if (!validateISBN(isbn)) {
-      toast.error('Invalid barcode detected. Please try again.');
-      return;
-    }
-
-    // Stop scanner
-    if (scannerRef.current) {
-      Quagga.stop();
-    }
-    setScannerState('ready');
-
-    // Navigate to review page with ISBN (matches mobile app)
-    router.push(`/cataloging/review/${isbn}`);
-    
-    toast.success('Barcode detected! Loading book details...');
-  }, [router]);
-
   // Toggle flash/torch
   const toggleFlash = useCallback(async () => {
     if (!flashSupported || !streamRef.current) return;
@@ -171,7 +130,7 @@ export default function BarcodeScanPage() {
     try {
       const videoTrack = streamRef.current.getVideoTracks()[0];
       await videoTrack.applyConstraints({
-        advanced: [{ torch: !isFlashOn } as MediaTrackConstraints['advanced']]
+        advanced: [{ torch: !isFlashOn } as any]
       });
       setIsFlashOn(!isFlashOn);
     } catch (error) {
@@ -183,8 +142,8 @@ export default function BarcodeScanPage() {
   // Cleanup
   const stopScanner = useCallback(() => {
     if (scannerRef.current) {
-      scannerRef.current.stop();
-      scannerRef.current = null;
+      Quagga.stop();
+      scannerRef.current = false;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -195,6 +154,48 @@ export default function BarcodeScanPage() {
       timeoutRef.current = null;
     }
   }, []);
+
+  // Initialize camera and scanner
+  const initializeScanner = useCallback(async () => {
+    try {
+      setScannerState('initializing');
+
+      // Request camera permission
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment', // Prefer rear camera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      });
+      
+      streamRef.current = stream;
+      setCameraPermission('granted');
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      // Check if flash/torch is supported
+      const videoTrack = stream.getVideoTracks()[0];
+      const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
+      setFlashSupported(!!(capabilities as MediaTrackCapabilities & { torch?: boolean }).torch);
+
+      // Initialize QuaggaJS scanner
+      startQuagga();
+
+    } catch (error) {
+      console.error('Camera initialization failed:', error);
+      setCameraPermission('denied');
+      setScannerState('error');
+      if (error instanceof Error && error.name === 'NotAllowedError') {
+        toast.error('Camera permission denied. Please enable camera access to scan barcodes.');
+      } else {
+        toast.error('Failed to initialize camera. You can still enter ISBN manually.');
+      }
+    }
+  }, [startQuagga]);
 
   // Initialize on mount
   useEffect(() => {

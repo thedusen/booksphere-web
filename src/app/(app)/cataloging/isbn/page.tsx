@@ -94,7 +94,6 @@ export default function ManualISBNEntryPage() {
                   value={isbn}
                   onChange={(e) => setIsbn(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  disabled={isLooking}
                   className="text-lg text-center font-mono"
                   autoFocus
                 />

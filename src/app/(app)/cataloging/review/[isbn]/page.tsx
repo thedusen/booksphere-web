@@ -24,14 +24,20 @@ import { fetchBookDataByISBN, BookData } from '@/lib/services/book-api';
 import Image from 'next/image';
 
 interface BookReviewPageProps {
-  params: {
+  params: Promise<{
     isbn: string;
-  };
+  }>;
 }
 
 export default function BookReviewPage({ params }: BookReviewPageProps) {
   const router = useRouter();
-  const { isbn } = params;
+  const [isbn, setIsbn] = React.useState<string>('');
+  
+  React.useEffect(() => {
+    params.then((resolvedParams) => {
+      setIsbn(resolvedParams.isbn);
+    });
+  }, [params]);
 
   // Query book data using the real API (matches mobile app exactly)
   const { 

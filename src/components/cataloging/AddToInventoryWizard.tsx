@@ -76,13 +76,13 @@ interface AttributeCategory {
 interface AttributeType {
   attribute_type_id: string;
   name: string;
-  category_id: string;
+  category_id: string | null;
 }
 
 interface Condition {
   condition_id: string;
   standard_name: string;
-  description?: string;
+  description: string | null;
 }
 
 const WIZARD_STEPS = [
@@ -446,8 +446,8 @@ const Step3_NotesAndSave = ({
         <p><strong>Price:</strong> ${formData.price || '0.00'}</p>
         <p><strong>Condition:</strong> {formData.selectedCondition?.standard_name || 'Not selected'}</p>
         <p><strong>Quantity:</strong> {formData.quantity || 1}</p>
-        {formData.selectedAttributes?.length > 0 && (
-          <p><strong>Attributes:</strong> {formData.selectedAttributes.length} selected</p>
+        {(formData.selectedAttributes?.length ?? 0) > 0 && (
+          <p><strong>Attributes:</strong> {formData.selectedAttributes?.length} selected</p>
         )}
       </CardContent>
     </Card>
