@@ -8,45 +8,35 @@
    - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 646ms
- ○ Compiling /dashboard ...
- ✓ Compiled /dashboard in 1392ms
- ⨯ [Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.ifry40smij'] {
-  errno: -2,
-  code: 'ENOENT',
-  syscall: 'open',
-  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.ifry40smij'
-}
- ✓ Compiled /_error in 367ms
- ⨯ [Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.41ejujiwfhg'] {
-  errno: -2,
-  code: 'ENOENT',
-  syscall: 'open',
-  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.41ejujiwfhg'
-}
-[Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.ifry40smij'] {
-  errno: -2,
-  code: 'ENOENT',
-  syscall: 'open',
-  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.ifry40smij'
-}
- ⨯ [Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.stxkur7hk6h'] {
-  errno: -2,
-  code: 'ENOENT',
-  syscall: 'open',
-  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.stxkur7hk6h'
-}
-[Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.gnpj3lze865'] {
-  errno: -2,
-  code: 'ENOENT',
-  syscall: 'open',
-  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.gnpj3lze865'
-}
- ✓ Compiled /favicon.ico in 145ms
- ⨯ [Error: ENOENT: no such file or directory, open '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.h5cylk1i4xs'] {
-  errno: -2,
-  code: 'ENOENT',
-  syscall: 'open',
-  path: '/Users/mitch/Documents/Projects/booksphere-web/.next/static/development/_buildManifest.js.tmp.h5cylk1i4xs'
-}
-[?25h
+ ✓ Ready in 729ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1101ms
+ HEAD / 307 in 1250ms
+ GET / 307 in 123ms
+ ✓ Compiled /login in 492ms
+ GET /login 200 in 558ms
+ ✓ Compiled /favicon.ico in 274ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 512ms
+ ○ Compiling /inventory ...
+ ✓ Compiled /inventory in 631ms
+ GET /inventory 200 in 653ms
+ ○ Compiling /cataloging ...
+ ✓ Compiled /cataloging in 619ms
+ GET /cataloging 200 in 638ms
+ ✓ Compiled /cataloging/jobs/[id] in 443ms
+ GET /cataloging/jobs/0d12999e-aa33-441a-a534-1c9b12bc1470 200 in 725ms
+ ✓ Compiled /_not-found/page in 302ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 328ms
+ GET /cataloging/jobs/0d12999e-aa33-441a-a534-1c9b12bc1470 200 in 136ms
+ GET /login 200 in 27ms
+ GET /login 200 in 27ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 234ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 221ms
+ GET /inventory 200 in 40ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 222ms
+ GET /cataloging 200 in 28ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 222ms
+ GET /cataloging/jobs/0d12999e-aa33-441a-a534-1c9b12bc1470 200 in 35ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 218ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 28ms
+ ✓ Compiled in 47ms

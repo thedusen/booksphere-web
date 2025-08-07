@@ -53,7 +53,7 @@ import {
   isCatalogingJobStatus,
   BookMetadata,
   CatalogingJobImageUrls,
-  isBookMetadata,
+  isBookMetadataV2,
   isCatalogingJobImageUrls
 } from '@/lib/types/jobs';
 import { 
@@ -728,7 +728,7 @@ const fetchCatalogingJobs = async (
             hasUpdatedAt: !!typedJob.updated_at,
             extractedDataType: typedJob.extracted_data === null ? 'null' : typeof typedJob.extracted_data,
             imageUrlsType: typedJob.image_urls === null ? 'null' : typeof typedJob.image_urls,
-            extractedDataValid: typedJob.extracted_data === null || isBookMetadata(typedJob.extracted_data),
+            extractedDataValid: typedJob.extracted_data === null || isBookMetadataV2(typedJob.extracted_data),
             imageUrlsValid: typedJob.image_urls === null || isCatalogingJobImageUrls(typedJob.image_urls),
           },
           fullJob: typedJob
@@ -930,7 +930,7 @@ export const useCatalogingJob = (jobId: string) => {
               hasStatus: !!typedJob.status,
               hasCreatedAt: !!typedJob.created_at,
               hasUpdatedAt: !!typedJob.updated_at,
-              extractedDataValid: typedJob.extracted_data === null || isBookMetadata(typedJob.extracted_data),
+              extractedDataValid: typedJob.extracted_data === null || isBookMetadataV2(typedJob.extracted_data),
               imageUrlsValid: typedJob.image_urls === null || isCatalogingJobImageUrls(typedJob.image_urls),
             },
             actualJob: typedJob

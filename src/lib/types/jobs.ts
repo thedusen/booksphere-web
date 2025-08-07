@@ -117,7 +117,7 @@ export function isCatalogingJobStatus(value: unknown): value is CatalogingJobSta
   return typeof value === 'string' && ['pending', 'processing', 'completed', 'failed'].includes(value);
 }
 
-export function isBookMetadata(value: unknown): value is BookMetadata {
+export function isBookMetadataV2(value: unknown): value is BookMetadata {
   if (!value || typeof value !== 'object') {
     console.error('❌ BookMetadata validation failed: value is not an object', { value, type: typeof value });
     return false;
@@ -136,8 +136,8 @@ export function isBookMetadata(value: unknown): value is BookMetadata {
     return false;
   }
   
-  console.log('🔧 NEW VALIDATION CODE RUNNING - Timestamp:', new Date().toISOString());
-  console.log('✅ BookMetadata validation passed for title:', metadata.title);
+  console.log('🚀 CACHE-BUSTED VALIDATION V2 - Timestamp:', new Date().toISOString());
+  console.log('✅ BookMetadata V2 validation passed for title:', metadata.title);
   
   // Optional fields type checking
   if (metadata.subtitle !== undefined && typeof metadata.subtitle !== 'string') return false;
@@ -278,7 +278,7 @@ export function isTypedCatalogingJob(value: unknown): value is TypedCatalogingJo
       data: job.extracted_data
     });
     
-    if (!isBookMetadata(job.extracted_data)) {
+    if (!isBookMetadataV2(job.extracted_data)) {
       console.error('❌ isTypedCatalogingJob: extracted_data failed BookMetadata validation');
       return false;
     }
