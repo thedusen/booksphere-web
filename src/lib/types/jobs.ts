@@ -136,6 +136,7 @@ export function isBookMetadata(value: unknown): value is BookMetadata {
     return false;
   }
   
+  console.log('🔧 NEW VALIDATION CODE RUNNING - Timestamp:', new Date().toISOString());
   console.log('✅ BookMetadata validation passed for title:', metadata.title);
   
   // Optional fields type checking
