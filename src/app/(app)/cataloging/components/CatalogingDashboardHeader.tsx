@@ -8,7 +8,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, Camera, Type, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DateInput } from '@/components/ui/date-input';
@@ -19,6 +19,13 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { CatalogingJobStatus, TypedCatalogingJob } from '@/lib/types/jobs';
 import { CatalogingJobFilters, CatalogingJobSourceType } from '@/lib/validators/cataloging';
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
 
 interface CatalogingDashboardHeaderProps {
   filters: CatalogingJobFilters;
@@ -154,9 +161,44 @@ export function CatalogingDashboardHeader({
   return (
     <div className="sticky top-0 z-10 bg-gradient-to-r from-background/95 to-lavender-50/30 backdrop-blur-sm">
       <div className="space-y-4 px-4 py-4">
-        {/* Page Title */}
+        {/* Page Title and Actions */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Cataloging Jobs</h1>
+          
+          {/* Add Book Actions */}
+          <div className="flex items-center gap-2">
+            {/* Direct scan button for quick access */}
+            <Button asChild>
+              <Link href="/cataloging/scan">
+                <Camera className="h-4 w-4 mr-2" />
+                Scan Barcode
+              </Link>
+            </Button>
+            
+            {/* Dropdown menu for all cataloging options */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Book
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/cataloging/scan" className="flex items-center">
+                    <Camera className="h-4 w-4 mr-2" />
+                    Scan Barcode
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/cataloging/isbn" className="flex items-center">
+                    <Type className="h-4 w-4 mr-2" />
+                    Manual ISBN Entry
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Status Tabs - Enhanced Skeumorphic Design */}

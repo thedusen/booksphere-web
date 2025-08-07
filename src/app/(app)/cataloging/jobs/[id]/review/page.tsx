@@ -13,7 +13,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ReviewWizard } from '@/components/cataloging/ReviewWizard';
+import { EnhancedReviewWizard } from '@/components/cataloging/EnhancedReviewWizard';
 import { useCatalogingJob } from '@/hooks/useCatalogJobs';
 import { getCatalogingJobDisplayStatus } from '@/lib/types/jobs';
 import Link from 'next/link';
@@ -131,29 +131,9 @@ export default function CatalogingJobReviewPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={`/cataloging/jobs/${jobId}`}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Job Details
-              </Link>
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">
-                Review & Finalize
-              </h1>
-              <p className="text-muted-foreground">
-                {job.extracted_data?.title || 'Cataloging Job'} • Job ID: {job.job_id}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Review Wizard */}
+        {/* Enhanced Review Wizard handles its own layout */}
         <div data-testid="review-wizard">
-          <ReviewWizard
+          <EnhancedReviewWizard
             job={job}
             onComplete={handleReviewComplete}
             onCancel={handleReviewCancel}

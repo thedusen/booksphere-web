@@ -10,6 +10,7 @@
 !.yarn/releases
 !.yarn/versions
 
+/mobile-app-reference/
 # testing
 /coverage
 
