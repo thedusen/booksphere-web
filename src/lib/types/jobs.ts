@@ -128,6 +128,18 @@ export function isBookMetadata(value: unknown): value is BookMetadata {
   // Temporary debug - log the actual data structure we're validating
   console.log('BookMetadata validation input:', JSON.stringify(value, null, 2));
   
+  // Lenient validation for AI analysis (human will review anyway)
+  if (metadata.extraction_source === 'ai_analysis') {
+    // Only require title for AI analysis jobs - everything else is optional
+    if (typeof metadata.title !== 'string' || metadata.title.length === 0) {
+      console.error('BookMetadata validation failed for AI analysis: title missing or empty', { title: metadata.title });
+      return false;
+    }
+    console.log('✅ AI Analysis job passed lenient validation');
+    return true;
+  }
+  
+  // Strict validation for non-AI sources (ISBN lookup, manual entry)
   // Title is required
   if (typeof metadata.title !== 'string') {
     console.error('BookMetadata validation failed: title is not a string', { title: metadata.title, type: typeof metadata.title });
