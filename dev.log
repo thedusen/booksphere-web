@@ -2,40 +2,14 @@
 > booksphere-web@0.1.0 dev
 > next dev --turbopack --port 3001
 
-   ▲ Next.js 15.3.4 (Turbopack)
-   - Local:        http://localhost:3001
-   - Network:      http://192.168.1.214:3001
-   - Environments: .env.local
-
- ✓ Starting...
- ✓ Ready in 804ms
- ○ Compiling / ...
- ✓ Compiled / in 1154ms
- HEAD / 307 in 1305ms
- ○ Compiling /inventory ...
- ✓ Compiled /inventory in 1582ms
- GET /inventory 200 in 1618ms
- ✓ Compiled /favicon.ico in 186ms
- GET /favicon.ico?favicon.45db1c09.ico 200 in 421ms
- ✓ Compiled /login in 381ms
- GET /login 200 in 407ms
- GET /login 200 in 21ms
- GET /favicon.ico?favicon.45db1c09.ico 200 in 227ms
- GET /inventory 200 in 118ms
- GET /favicon.ico?favicon.45db1c09.ico 200 in 235ms
- ○ Compiling /admin/flags ...
- ✓ Compiled /admin/flags in 994ms
- GET /admin/flags 200 in 1151ms
- ✓ Compiled /_not-found/page in 371ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 412ms
- GET /favicon.ico?favicon.45db1c09.ico 200 in 254ms
- ✓ Compiled in 142ms
-
------
-[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to /var/folders/pd/d6xf7sy15rqc5d3s03nc8zs00000gn/T/next-panic-c9b20909bf0884ea4c9d79d52f939f1e.log.
-
-To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20%5Bproject%5D%2Fsrc%2Fapp%2Fglobals.css%20%5Bapp-client%5D%20%28css%29&body=Turbopack%20version%3A%20%60v15.3.3-3-gf9e98b9ce%60%0A%0AError%20message%3A%0A%60%60%60%0A%5Bproject%5D%2Fsrc%2Fapp%2Fglobals.css%20%5Bapp-client%5D%20%28css%29%0A%0ACaused%20by%3A%0A-%20creating%20new%20process%0A-%20node%20process%20exited%20before%20we%20could%20connect%20to%20it%20with%20exit%20status%3A%201%0A%0ADebug%20info%3A%0A-%20Execution%20of%20subscribe_issues_and_diags_operation%20failed%0A-%20Execution%20of%20%3CAppEndpoint%20as%20Endpoint%3E%3A%3Aserver_changed%20failed%0A-%20Execution%20of%20AppEndpoint%3A%3Aoutput%20failed%0A-%20Execution%20of%20AppProject%3A%3Aapp_module_graphs%20failed%0A-%20Execution%20of%20SingleModuleGraph%3A%3Anew_with_entries_visited_intern%20failed%0A-%20%5Bproject%5D%2Fsrc%2Fapp%2Fglobals.css%20%5Bapp-client%5D%20%28css%29%0A-%20Execution%20of%20primary_chunkable_referenced_modules%20failed%0A-%20Execution%20of%20%3CCssModuleAsset%20as%20Module%3E%3A%3Areferences%20failed%0A-%20Execution%20of%20parse_css%20failed%0A-%20Execution%20of%20%3CPostCssTransformedAsset%20as%20Asset%3E%3A%3Acontent%20failed%0A-%20Execution%20of%20PostCssTransformedAsset%3A%3Aprocess%20failed%0A-%20creating%20new%20process%0A-%20node%20process%20exited%20before%20we%20could%20connect%20to%20it%20with%20exit%20status%3A%201%0A%20%20Process%20output%3A%0A%20%20%0A%20%20Process%20error%20output%3A%0A%20%20node%3Ainternal%2Fmodules%2Fcjs%2Floader%3A1215%0A%20%20%20%20throw%20err%3B%0A%20%20%20%20%5E%0A%20%20%0A%20%20Error%3A%20Cannot%20find%20module%20%27%2FUsers%2Fmitch%2FDocuments%2FProjects%2Fbooksphere-web%2F.next%2Ftransform.js%27%0A%20%20%20%20%20%20at%20Module._resolveFilename%20%28node%3Ainternal%2Fmodules%2Fcjs%2Floader%3A1212%3A15%29%0A%20%20%20%20%20%20at%20Module._load%20%28node%3Ainternal%2Fmodules%2Fcjs%2Floader%3A1043%3A27%29%0A%20%20%20%20%20%20at%20Function.executeUserEntryPoint%20%5Bas%20runMain%5D%20%28node%3Ainternal%2Fmodules%2Frun_main%3A164%3A12%29%0A%20%20%20%20%20%20at%20node%3Ainternal%2Fmain%2Frun_main_module%3A28%3A49%20%7B%0A%20%20%20%20code%3A%20%27MODULE_NOT_FOUND%27%2C%0A%20%20%7D%0A%20%20%0A%20%20Node.js%20v20.19.3%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
------
-
- ✓ Compiled in 33.5s
+ ⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3001
+    at <unknown> (Error: listen EADDRINUSE: address already in use :::3001)
+    at new Promise (<anonymous>) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
 [?25h

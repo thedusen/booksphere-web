@@ -32,7 +32,6 @@ interface CatalogingDashboardHeaderProps {
   selectedJobIds: string[];
   totalJobs: number;
   statusCounts?: Record<CatalogingJobStatus, number>;
-  jobs: TypedCatalogingJob[]; // Add jobs to determine retry eligibility
   onStatusFilterChange: (status: CatalogingJobStatus | undefined) => void;
   onSearchChange: (search: string) => void;
   onSourceFilterChange: (sourceType: CatalogingJobSourceType) => void;
@@ -60,7 +59,6 @@ export function CatalogingDashboardHeader({
   selectedJobIds,
   totalJobs,
   statusCounts,
-  jobs: _jobs,
   onStatusFilterChange,
   onSearchChange,
   onSourceFilterChange,
@@ -183,17 +181,50 @@ export function CatalogingDashboardHeader({
                   Add Book
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-64 p-2">
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                  CATALOG NEW BOOKS
+                </div>
                 <DropdownMenuItem asChild>
-                  <Link href="/cataloging/scan" className="flex items-center">
-                    <Camera className="h-4 w-4 mr-2" />
-                    Scan Barcode
+                  <Link href="/cataloging/scan" className="flex items-center gap-3 p-3 rounded-md">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Camera className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <div className="font-medium">Scan Barcode</div>
+                      <div className="text-xs text-muted-foreground">Quick ISBN lookup</div>
+                    </div>
                   </Link>
                 </DropdownMenuItem>
+                
                 <DropdownMenuItem asChild>
-                  <Link href="/cataloging/isbn" className="flex items-center">
-                    <Type className="h-4 w-4 mr-2" />
-                    Manual ISBN Entry
+                  <Link href="/cataloging/isbn" className="flex items-center gap-3 p-3 rounded-md">
+                    <div className="p-2 bg-blue-500/10 rounded-lg">
+                      <Type className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium">Manual ISBN Entry</div>
+                      <div className="text-xs text-muted-foreground">Type ISBN directly</div>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+                
+                <div className="my-2">
+                  <div className="border-t border-border/50" />
+                </div>
+                
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                  INVENTORY MANAGEMENT  
+                </div>
+                <DropdownMenuItem asChild>
+                  <Link href="/cataloging/add-to-inventory" className="flex items-center gap-3 p-3 rounded-md">
+                    <div className="p-2 bg-green-500/10 rounded-lg">
+                      <Plus className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium">Add to Inventory</div>
+                      <div className="text-xs text-muted-foreground">Direct inventory entry</div>
+                    </div>
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -233,7 +264,13 @@ export function CatalogingDashboardHeader({
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10 pr-10"
+                aria-label="Search cataloging jobs by title, author, or ISBN"
+                role="searchbox"
+                aria-describedby="search-help"
               />
+              <div id="search-help" className="sr-only">
+                Search through all cataloging jobs by typing a title, author name, or ISBN
+              </div>
               {searchInput && (
                 <Button
                   variant="ghost"

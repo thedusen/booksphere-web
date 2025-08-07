@@ -24,7 +24,10 @@ import {
   ChevronDown,
   ChevronUp,
   Maximize,
-  Minimize
+  Minimize,
+  Camera,
+  Eye,
+  ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,6 +44,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Import hooks and services
 import { useOrganization } from '@/hooks/useOrganization';
@@ -490,6 +500,8 @@ export function AddToInventoryWizard({
   const [quantity, setQuantity] = useState<string>('1');
   const [selectedAttributeIds, setSelectedAttributeIds] = useState<string[]>([]);
   const [notes, setNotes] = useState<string>('');
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [newStockItemId, setNewStockItemId] = useState<string | null>(null);
   
   // Fetch data
   const { data: conditions, isLoading: isLoadingConditions } = useConditions({ client: supabase });
@@ -540,11 +552,16 @@ export function AddToInventoryWizard({
 
       return newStockItemId;
     },
-    onSuccess: () => {
-      toast.success('Book successfully added to inventory!');
-      onComplete?.();
-      // Could redirect to stock item or back to cataloging dashboard
-      router.push('/inventory');
+    onSuccess: (stockItemId) => {
+      setNewStockItemId(stockItemId);
+      setShowCompletionModal(true);
+      toast.success('Book successfully added to inventory!', {
+        duration: 4000,
+        action: {
+          label: 'View in Inventory',
+          onClick: () => router.push(`/inventory/${stockItemId}`)
+        }
+      });
     },
     onError: (error: Error) => {
       console.error('Error saving to inventory:', error);
@@ -700,6 +717,82 @@ export function AddToInventoryWizard({
           </Button>
         </div>
       </div>
+      
+      {/* Completion Modal */}
+      <Dialog open={showCompletionModal} onOpenChange={setShowCompletionModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <Check className="h-5 w-5 text-green-600" />
+              </div>
+              Book Added Successfully!
+            </DialogTitle>
+            <DialogDescription>
+              {bookData.title || 'Your book'} has been added to inventory. What would you like to do next?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 mt-4">
+            <Button 
+              className="w-full justify-start h-12"
+              onClick={() => {
+                setShowCompletionModal(false);
+                onComplete?.();
+                router.push('/cataloging/scan');
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Camera className="h-4 w-4 text-primary" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Scan Another Book</div>
+                  <div className="text-xs text-muted-foreground">Continue cataloging workflow</div>
+                </div>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="w-full justify-start h-12"
+              onClick={() => {
+                setShowCompletionModal(false);
+                router.push(`/inventory/${newStockItemId}`);
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500/10 rounded-lg">
+                  <Eye className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">View in Inventory</div>
+                  <div className="text-xs text-muted-foreground">See your new stock item</div>
+                </div>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="w-full justify-start h-12"
+              onClick={() => {
+                setShowCompletionModal(false);
+                router.push('/cataloging');
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gray-500/10 rounded-lg">
+                  <ArrowLeft className="h-4 w-4 text-gray-600" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Back to Cataloging</div>
+                  <div className="text-xs text-muted-foreground">Return to job dashboard</div>
+                </div>
+              </div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -254,13 +254,25 @@ const OptimizedJobRow = React.memo(({
     }
   }, [job.job_id]);
 
+  // Handle keyboard navigation
+  const handleRowKeyDown = useCallback((e: React.KeyboardEvent<HTMLTableRowElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      window.location.href = `/cataloging/jobs/${job.job_id}`;
+    }
+  }, [job.job_id]);
+
   return (
     <TableRow 
       className={cn(
-        "cursor-pointer hover:bg-muted/50",
+        "cursor-pointer hover:bg-muted/50 focus-within:bg-muted/50",
         isSelected && "bg-muted/50"
       )}
       onClick={handleRowClick}
+      onKeyDown={handleRowKeyDown}
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${job.extracted_data?.title || 'cataloging job'}`}
     >
       <TableCell>
         <Checkbox

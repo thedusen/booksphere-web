@@ -433,7 +433,6 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
         selectedJobIds={selectedJobIds}
         totalJobs={totalCount}
         statusCounts={statusCounts}
-        jobs={jobs}
         onStatusFilterChange={handleStatusFilterChange}
         onSearchChange={handleSearchChange}
         onSourceFilterChange={handleSourceFilterChange}
@@ -480,7 +479,6 @@ export const OptimizedCatalogingDashboard: React.FC<OptimizedCatalogingDashboard
                   jobs={jobs}
                   selectedJobIds={selectedJobIds}
                   onSelectJob={handleSelectJob}
-                  onSelectAll={handleSelectAll}
                   onDeleteJob={handleDeleteJob}
                   onRetryJob={handleRetryJob}
                 />

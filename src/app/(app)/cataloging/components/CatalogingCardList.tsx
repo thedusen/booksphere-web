@@ -35,7 +35,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { TypedCatalogingJob, getCatalogingJobDisplayStatus } from '@/lib/types/jobs';
+import { TypedCatalogingJob } from '@/lib/types/jobs';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -43,7 +43,6 @@ interface CatalogingCardListProps {
   jobs: TypedCatalogingJob[];
   selectedJobIds: string[];
   onSelectJob: (jobId: string, selected: boolean) => void;
-  onSelectAll: (selected: boolean) => void;
   onDeleteJob?: (jobId: string) => void;
   onRetryJob?: (jobId: string) => void;
 }
@@ -52,7 +51,6 @@ export function CatalogingCardList({
   jobs,
   selectedJobIds,
   onSelectJob,
-  onSelectAll,
   onDeleteJob,
   onRetryJob,
 }: CatalogingCardListProps) {
@@ -203,6 +201,23 @@ export function CatalogingCardList({
                   <p className="text-xs text-destructive font-medium">
                     Error: {job.error_message}
                   </p>
+                </div>
+              )}
+
+              {/* Mobile Review Button for Completed Jobs */}
+              {job.status === 'completed' && job.extracted_data && (
+                <div className="pt-2 border-t border-border/50">
+                  <Button 
+                    asChild
+                    className="w-full h-10 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-sm"
+                  >
+                    <Link href={`/cataloging/review/${job.extracted_data.isbn13 || job.job_id}`}>
+                      <div className="flex items-center justify-center gap-2">
+                        <Eye className="h-4 w-4" />
+                        <span className="font-medium">Review & Add to Inventory</span>
+                      </div>
+                    </Link>
+                  </Button>
                 </div>
               )}
             </div>
