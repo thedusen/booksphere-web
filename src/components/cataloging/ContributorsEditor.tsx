@@ -72,6 +72,7 @@ export function ContributorsEditor({
 
     // Check for duplicates
     const exists = contributors.some(c => 
+      c.name && typeof c.name === 'string' &&
       c.name.toLowerCase() === newContributorName.trim().toLowerCase() &&
       c.role === newContributorRole
     );
@@ -211,7 +212,7 @@ export function ContributorsEditor({
 // Helper function to convert contributors to the format expected by the backend
 export const formatContributorsForBackend = (contributors: Contributor[]) => {
   return contributors
-    .filter(contributor => contributor.name.trim())
+    .filter(contributor => contributor.name && typeof contributor.name === 'string' && contributor.name.trim())
     .map(contributor => ({
       name: contributor.name.trim(),
       author_type_id: contributor.author_type_id || DEFAULT_AUTHOR_TYPE_ID,
@@ -220,10 +221,32 @@ export const formatContributorsForBackend = (contributors: Contributor[]) => {
 };
 
 // Helper function to initialize contributors from authors array (for AI job data)
-export const initializeContributorsFromAuthors = (authors: string[] = []): Contributor[] => {
-  return authors.map(name => ({
-    name: name.trim(),
-    author_type_id: DEFAULT_AUTHOR_TYPE_ID,
-    role: 'Author'
-  }));
+export const initializeContributorsFromAuthors = (authors: any[] = []): Contributor[] => {
+  if (!Array.isArray(authors)) {
+    return [];
+  }
+  
+  return authors
+    .map(author => {
+      // Handle various author data formats from AI processing
+      let authorName: string;
+      
+      if (typeof author === 'string') {
+        authorName = author;
+      } else if (typeof author === 'object' && author !== null) {
+        // Handle object format like {name: "Author Name"} or {author: "Author Name"}
+        authorName = author.name || author.author || String(author);
+      } else {
+        // Convert other types to string
+        authorName = String(author || '');
+      }
+      
+      return authorName;
+    })
+    .filter(name => name && typeof name === 'string' && name.trim().length > 0)
+    .map(name => ({
+      name: name.trim(),
+      author_type_id: DEFAULT_AUTHOR_TYPE_ID,
+      role: 'Author'
+    }));
 };

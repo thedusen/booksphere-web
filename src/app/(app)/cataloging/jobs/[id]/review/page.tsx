@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { EnhancedReviewWizard } from '@/components/cataloging/EnhancedReviewWizard';
-import { useCatalogingJob } from '@/hooks/useCatalogJobs';
+import { useCatalogingJobForReview } from '@/hooks/useCatalogJobs';
 import { getCatalogingJobDisplayStatus } from '@/lib/types/jobs';
 import Link from 'next/link';
 
@@ -23,8 +23,8 @@ export default function CatalogingJobReviewPage() {
   const router = useRouter();
   const jobId = params.id as string;
 
-  // Data fetching
-  const { data: job, isLoading, isError, error } = useCatalogingJob(jobId);
+  // Data fetching - using permissive hook that bypasses strict validation
+  const { data: job, isLoading, isError, error } = useCatalogingJobForReview(jobId);
 
   // Navigation handlers
   const handleReviewComplete = () => {

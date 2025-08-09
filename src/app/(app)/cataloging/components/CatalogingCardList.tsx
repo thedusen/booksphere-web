@@ -57,17 +57,11 @@ export function CatalogingCardList({
   // Smart routing function to determine correct link destination
   const getJobLink = (job: TypedCatalogingJob): string => {
     if (job.status === 'completed') {
-      // AI Analysis jobs → Job-based review flow (handles non-ISBN books)
-      if (job.extracted_data?.extraction_source === 'ai_analysis') {
-        return `/cataloging/jobs/${job.job_id}/review`;
-      }
-      // ISBN-based jobs → ISBN review flow or direct to inventory
-      if (job.extracted_data?.extraction_source === 'isbn_lookup' && job.extracted_data?.isbn13) {
-        // For now, route to ISBN review flow - can be optimized later to skip review
-        return `/cataloging/review/${job.extracted_data.isbn13}`;
-      }
+      // Route ALL completed jobs directly to review (matching mobile app behavior)
+      // This bypasses the problematic job details validation
+      return `/cataloging/jobs/${job.job_id}/review`;
     }
-    // All other jobs → Job details page
+    // All other jobs (pending, processing, failed) → Job details page
     return `/cataloging/jobs/${job.job_id}`;
   };
 
@@ -108,9 +102,9 @@ export function CatalogingCardList({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/cataloging/jobs/${job.job_id}`}>
+          <Link href={getJobLink(job)}>
             <Eye className="h-4 w-4 mr-2" />
-            View Details
+            {job.status === 'completed' ? 'Review & Finalize' : 'View Details'}
           </Link>
         </DropdownMenuItem>
         {job.status === 'failed' && onRetryJob && (

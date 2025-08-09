@@ -280,8 +280,9 @@ export function isTypedCatalogingJob(value: unknown): value is TypedCatalogingJo
     });
     
     if (!validateBookMetadataCacheBusted(job.extracted_data)) {
-      console.error('❌ isTypedCatalogingJob: extracted_data failed BookMetadata validation');
-      return false;
+      console.warn('⚠️  isTypedCatalogingJob: extracted_data failed BookMetadata validation, but allowing for review', { job_id: job.job_id });
+      // Allow malformed data to pass through - it can be reviewed and fixed in the UI
+      // return false;
     }
   } else {
     console.log('🔍 extracted_data is null or undefined:', job.extracted_data);

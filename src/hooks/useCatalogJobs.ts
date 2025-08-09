@@ -964,6 +964,77 @@ export const useCatalogingJob = (jobId: string) => {
 };
 
 /**
+ * Permissive cataloging job hook for review page
+ * This bypasses strict validation and allows malformed jobs to be processed at the review level
+ * Used specifically for the review workflow where validation is handled more gracefully
+ */
+export const useCatalogingJobForReview = (jobId: string) => {
+  const { organizationId } = useOrganization();
+
+  return useQuery({
+    queryKey: [...catalogingJobKeys.detail(jobId), 'review-mode'],
+    queryFn: async () => {
+      if (!organizationId || !jobId) {
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from('cataloging_jobs')
+        .select('*')
+        .eq('job_id', jobId)
+        .eq('organization_id', organizationId)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // Record not found
+          return null;
+        }
+        throw createErrorHandler('Fetch cataloging job for review')(error);
+      }
+
+      try {
+        // Parse JSON fields safely without strict validation
+        const extractedData = typeof data.extracted_data === 'string'
+          ? JSON.parse(data.extracted_data)
+          : data.extracted_data;
+        const imageUrls = typeof data.image_urls === 'string'
+          ? JSON.parse(data.image_urls)
+          : data.image_urls;
+
+        // Create a permissive job object that doesn't enforce strict BookMetadata validation
+        const jobForReview = {
+          ...data,
+          extracted_data: extractedData,
+          image_urls: imageUrls,
+        };
+
+        console.log('✅ Review mode: Job loaded permissively for review:', jobId);
+        return jobForReview;
+      } catch (error) {
+        console.warn('Warning: JSON parsing failed in review mode, using raw data:', error);
+        // Even if JSON parsing fails, return the raw data for the review page to handle
+        return {
+          ...data,
+          extracted_data: data.extracted_data,
+          image_urls: data.image_urls,
+        };
+      }
+    },
+    enabled: !!organizationId && !!jobId,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+    retry: (failureCount, error) => {
+      if (error instanceof CatalogingJobError && !error.retryable) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+/**
  * Cataloging job statistics hook
  * PERFORMANCE OPTIMIZED: Uses database-level aggregation instead of client-side processing
  * 

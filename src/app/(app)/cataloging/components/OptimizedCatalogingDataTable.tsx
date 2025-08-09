@@ -187,9 +187,9 @@ const JobActions = React.memo(({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/cataloging/jobs/${job.job_id}`}>
+          <Link href={job.status === 'completed' ? `/cataloging/jobs/${job.job_id}/review` : `/cataloging/jobs/${job.job_id}`}>
             <Eye className="h-4 w-4 mr-2" />
-            View Details
+            {job.status === 'completed' ? 'Review & Finalize' : 'View Details'}
           </Link>
         </DropdownMenuItem>
         {job.status === 'failed' && onRetry && (
@@ -242,25 +242,32 @@ const OptimizedJobRow = React.memo(({
     onSelect(job.job_id, checked);
   }, [job.job_id, onSelect]);
 
-  // Handle row click to navigate to job details
+  // Handle row click to navigate - completed jobs go directly to review like mobile app
   const handleRowClick = useCallback((e: React.MouseEvent<HTMLTableRowElement>) => {
     // Don't navigate if clicking on interactive elements
     const target = e.target as HTMLElement;
     const isInteractiveElement = target.closest('button, a, input, [role="button"], [role="checkbox"]');
     
     if (!isInteractiveElement) {
-      // Navigate to job details page
-      window.location.href = `/cataloging/jobs/${job.job_id}`;
+      // Route completed jobs directly to review (like mobile app), others to details
+      const targetUrl = job.status === 'completed' 
+        ? `/cataloging/jobs/${job.job_id}/review`
+        : `/cataloging/jobs/${job.job_id}`;
+      window.location.href = targetUrl;
     }
-  }, [job.job_id]);
+  }, [job.job_id, job.status]);
 
   // Handle keyboard navigation
   const handleRowKeyDown = useCallback((e: React.KeyboardEvent<HTMLTableRowElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      window.location.href = `/cataloging/jobs/${job.job_id}`;
+      // Route completed jobs directly to review (like mobile app), others to details
+      const targetUrl = job.status === 'completed' 
+        ? `/cataloging/jobs/${job.job_id}/review`
+        : `/cataloging/jobs/${job.job_id}`;
+      window.location.href = targetUrl;
     }
-  }, [job.job_id]);
+  }, [job.job_id, job.status]);
 
   return (
     <TableRow 
@@ -283,7 +290,7 @@ const OptimizedJobRow = React.memo(({
       </TableCell>
       <TableCell>
         <Link 
-          href={`/cataloging/jobs/${job.job_id}`}
+          href={job.status === 'completed' ? `/cataloging/jobs/${job.job_id}/review` : `/cataloging/jobs/${job.job_id}`}
           className="block hover:underline"
         >
           <div className="space-y-1">

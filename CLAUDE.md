@@ -10,6 +10,7 @@ Booksphere Web is a professional inventory management system for independent boo
 - **UI**: shadcn/ui components with Tailwind CSS
 - **State Management**: TanStack Query with realtime subscriptions
 - **Authentication**: Supabase Auth
+- **Package Manager**: This project only uses npm, not yarn
 
 ## Common Development Commands
 

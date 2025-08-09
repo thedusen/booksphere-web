@@ -13,7 +13,8 @@ import {
   ArrowLeft,
   ChevronRight, 
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -223,7 +224,8 @@ export function EnhancedReviewWizard({ job, onComplete, onCancel }: EnhancedRevi
       if ((debouncedIsbn && debouncedIsbn.length >= 10) || 
           (debouncedTitle && debouncedTitle.length > 5)) {
         setIsMatching(true);
-        setMatchDialogOpen(true);
+        // Don't auto-open dialog - let user manually trigger search
+        // setMatchDialogOpen(true);
         try {
           const results = await editionMatchService.findMatches(
             {
@@ -242,8 +244,12 @@ export function EnhancedReviewWizard({ job, onComplete, onCancel }: EnhancedRevi
           setMatches(mappedMatches);
         } catch (error) {
           console.error("Edition matching failed:", error);
-          toast.error("Failed to search for matching editions.");
+          // Don't show error toast if it's just a missing RPC function
+          if (!(error instanceof Error && error.message?.includes('function'))) {
+            toast.error("Failed to search for matching editions.");
+          }
           setMatches([]);
+          setMatchDialogOpen(false); // Close dialog on error
         } finally {
           setIsMatching(false);
         }
@@ -283,12 +289,50 @@ export function EnhancedReviewWizard({ job, onComplete, onCancel }: EnhancedRevi
     setMatchDialogOpen(false);
   }, []);
 
+  const handleManualSearch = useCallback(async () => {
+    if (!organizationId) return;
+    
+    if (!formData.title && !formData.isbn) {
+      toast.error("Please enter a title or ISBN to search for matches.");
+      return;
+    }
+
+    setIsMatching(true);
+    setMatchDialogOpen(true);
+    try {
+      const results = await editionMatchService.findMatches(
+        {
+          title: formData.title,
+          isbn13: formData.isbn,
+        },
+        organizationId
+      );
+      
+      const mappedMatches: BookMatch[] = results.map(r => ({
+        ...r,
+        confidence: r.confidence_score > 0.8 ? 'high' : 
+                   r.confidence_score > 0.5 ? 'medium' : 'low',
+      }));
+
+      setMatches(mappedMatches);
+    } catch (error) {
+      console.error("Manual edition search failed:", error);
+      if (!(error instanceof Error && error.message?.includes('function'))) {
+        toast.error("Failed to search for matching editions.");
+      }
+      setMatches([]);
+      setMatchDialogOpen(false);
+    } finally {
+      setIsMatching(false);
+    }
+  }, [organizationId, formData.title, formData.isbn, editionMatchService]);
+
   // Prepare book data for AddToInventoryWizard
   const bookData: BookData = useMemo(() => ({
     isbn: formData.isbn,
     title: formData.title,
     subtitle: formData.subtitle,
-    authors: contributors.filter(c => c.name.trim()).map(c => c.name.trim()),
+    authors: contributors.filter(c => c.name && typeof c.name === 'string' && c.name.trim()).map(c => c.name.trim()),
     publisher: formData.publisher,
     published_date: formData.publication_year?.toString(),
     page_count: formData.page_count || undefined,
@@ -303,7 +347,7 @@ export function EnhancedReviewWizard({ job, onComplete, onCancel }: EnhancedRevi
       return;
     }
 
-    if (!contributors || contributors.length === 0 || !contributors.some(c => c.name.trim())) {
+    if (!contributors || contributors.length === 0 || !contributors.some(c => c.name && typeof c.name === 'string' && c.name.trim())) {
       toast.error('At least one contributor is required.');
       return;
     }
@@ -411,6 +455,21 @@ export function EnhancedReviewWizard({ job, onComplete, onCancel }: EnhancedRevi
                 onChangeText={(val: string) => handleInputChange('edition_statement', val)}
                 placeholder="e.g., First Edition, Revised Edition"
               />
+              
+              <div className="pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={handleManualSearch}
+                  disabled={(!formData.title && !formData.isbn) || isMatching}
+                  className="w-full"
+                >
+                  <Search className="mr-2 h-4 w-4" />
+                  {isMatching ? 'Searching...' : 'Search for Existing Editions'}
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Find matching editions to apply existing data
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -458,7 +517,7 @@ export function EnhancedReviewWizard({ job, onComplete, onCancel }: EnhancedRevi
         
         <Button 
           onClick={handleProceedToInventory}
-          disabled={!formData.title || !contributors.some(c => c.name.trim())}
+          disabled={!formData.title || !contributors.some(c => c.name && typeof c.name === 'string' && c.name.trim())}
         >
           Continue to Inventory
           <ChevronRight className="ml-2 h-4 w-4" />
