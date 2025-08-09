@@ -12,6 +12,7 @@ import { toast } from "sonner";
 const Sidebar: React.FC = () => {
     const pathname = usePathname();
     const router = useRouter();
+    const [isSigningOut, setIsSigningOut] = React.useState(false);
     
     // Navigation items with active state detection
     const navigationItems = [
@@ -48,16 +49,37 @@ const Sidebar: React.FC = () => {
      * Handle user logout with proper error handling and navigation
      */
     const handleSignOut = async () => {
+        if (isSigningOut) {
+            console.log('Sign out already in progress, ignoring click');
+            return;
+        }
+
+        console.log('Sign out button clicked');
+        setIsSigningOut(true);
+        
         try {
-            const { error } = await supabase.auth.signOut();
+            console.log('Attempting to sign out...');
+            
+            const { error } = await supabase.auth.signOut({ scope: 'local' });
+            
+            console.log('Sign out response:', { error });
+            
             if (error) {
-                console.error('Logout error:', error);
-                toast.error('Failed to sign out. Please try again.');
+                console.error('Supabase logout error:', error);
+                toast.error(`Failed to sign out: ${error.message}`);
+                setIsSigningOut(false);
                 return;
             }
             
-            // Clear any local storage or session data if needed
-            // The supabase client will handle clearing the session
+            console.log('Sign out successful, clearing local storage and navigating...');
+            
+            // Clear any remaining auth data
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+            } catch (storageError) {
+                console.warn('Storage clear failed:', storageError);
+            }
             
             // Navigate to login page
             router.push('/login');
@@ -66,7 +88,17 @@ const Sidebar: React.FC = () => {
             toast.success('Signed out successfully');
         } catch (error) {
             console.error('Unexpected logout error:', error);
-            toast.error('An unexpected error occurred during sign out');
+            
+            // Force logout by clearing storage and redirecting
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+                router.push('/login');
+                toast.success('Signed out (forced)');
+            } catch (forceError) {
+                toast.error(`An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                setIsSigningOut(false);
+            }
         }
     };
 
@@ -142,9 +174,10 @@ const Sidebar: React.FC = () => {
                     className="justify-start w-full hover:bg-gradient-to-r hover:from-destructive/20 hover:to-coral-500/20 hover:text-destructive transition-all animate-spring glass-hover"
                     aria-label="Sign out of your account"
                     onClick={handleSignOut}
+                    disabled={isSigningOut}
                 >
                     <LogOut className="mr-2 h-5 w-5" />
-                    Sign Out
+                    {isSigningOut ? 'Signing Out...' : 'Sign Out'}
                 </Button>
             </div>
         </aside>

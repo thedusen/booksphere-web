@@ -3022,6 +3022,10 @@ export type Database = {
         }
         Returns: Json
       }
+      safe_delete_book: {
+        Args: { target_book_id: string }
+        Returns: Json
+      }
       validate_password_strength: {
         Args: { password: string }
         Returns: boolean

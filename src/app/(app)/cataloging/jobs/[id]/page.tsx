@@ -23,11 +23,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog';
 import { useCatalogingJob, useDeleteCatalogingJobs, useRetryCatalogingJobs } from '@/hooks/useCatalogJobs';
 import { getCatalogingJobDisplayStatus, CatalogingJobStatus } from '@/lib/types/jobs';
-import { toast } from 'sonner';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -114,8 +112,42 @@ export default function CatalogingJobDetailsPage() {
     );
   }
 
-  // Error state
+  // Error state - but handle validation errors for completed jobs specially
   if (isError || !job) {
+    // Check if this is a validation error that might be resolved at the review level
+    const isValidationError = error instanceof Error && error.message.includes('Invalid cataloging job structure');
+    
+    if (isValidationError) {
+      // For validation errors, try to route directly to review like mobile app does
+      // This bypasses the strict validation at the details level
+      return (
+        <div className="container mx-auto px-4 py-6">
+          <div className="text-center space-y-4">
+            <h2 className="text-lg font-semibold text-amber-600">
+              Job Ready for Review
+            </h2>
+            <p className="text-muted-foreground">
+              This job has some validation issues at the details level, but you can proceed directly to review to finalize it.
+            </p>
+            <div className="flex justify-center gap-4">
+              <Button asChild>
+                <Link href={`/cataloging/jobs/${jobId}/review`}>
+                  Continue to Review
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/cataloging">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Cataloging
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // For other errors, show normal error state
     return (
       <div className="container mx-auto px-4 py-6">
         <div className="text-center space-y-4">

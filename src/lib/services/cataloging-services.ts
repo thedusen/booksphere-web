@@ -446,10 +446,27 @@ export class EditionMatchService {
     limit: number = 3
   ): Promise<EditionMatch[]> {
     try {
+      // Validate input data
+      if (!organizationId) {
+        console.warn('EditionMatchService: No organization ID provided');
+        return [];
+      }
+
+      if (!request.title && !request.isbn13 && !request.isbn10) {
+        console.warn('EditionMatchService: No searchable criteria provided');
+        return [];
+      }
+
+      console.log('🔍 Finding edition matches for:', { 
+        title: request.title, 
+        isbn13: request.isbn13, 
+        organizationId 
+      });
+
       const { data, error } = await supabase
         .rpc('match_book_by_details', {
           p_organization_id: organizationId,
-          p_title: request.title,
+          p_title: request.title || null,
           p_subtitle: request.subtitle || null,
           p_isbn13: request.isbn13 || null,
           p_isbn10: request.isbn10 || null,
@@ -459,6 +476,13 @@ export class EditionMatchService {
         });
 
       if (error) {
+        // Check if it's a missing function error
+        if (error.code === '42883' || error.message?.includes('function') || error.message?.includes('does not exist')) {
+          console.warn('EditionMatchService: RPC function not available, returning empty matches');
+          return [];
+        }
+        
+        console.error('EditionMatchService error:', error);
         throw new CatalogingServiceError(
           'Failed to find edition matches',
           'FIND_MATCHES_ERROR',

@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Trash2, ChevronLeft } from "lucide-react";
+import { AlertTriangle, ChevronLeft } from "lucide-react";
 import { FlaggingTrigger, FlaggingButton } from "@/components/flagging";
 import type { EditionStockItem } from "@/lib/types/inventory";
 
@@ -55,46 +55,52 @@ const StockItemCard = React.memo(function StockItemCard({ item, editionTitle }: 
   ]);
 
   return (
-    <div className="border rounded p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="border border-neutral-200/60 rounded-xl p-lg bg-gradient-to-br from-background/98 to-mint-50/20 shadow-elevation-1 hover:shadow-elevation-2 animate-spring flex flex-col md:flex-row md:items-center md:justify-between gap-lg">
       <div className="space-y-2">
         {/* Condition field with flagging capability */}
-        <FlaggingTrigger
-          tableName="stock_items"
-          recordId={item.stock_item_id}
-          fieldName="condition_name"
-          currentValue={item.condition_name}
-          fieldLabel="Condition"
-          contextData={stockItemContextData}
-          className="flaggable-field inline-block rounded-sm px-1 -mx-1"
-        >
-          <div className="font-medium">Condition: {item.condition_name}</div>
-        </FlaggingTrigger>
+        <div>
+          <FlaggingTrigger
+            tableName="stock_items"
+            recordId={item.stock_item_id}
+            fieldName="condition_name"
+            currentValue={item.condition_name}
+            fieldLabel="Condition"
+            contextData={stockItemContextData}
+            className="flaggable-field inline-block rounded-sm px-1 -mx-1"
+          >
+            <div className="text-sm text-muted-foreground">Condition: {item.condition_name}</div>
+          </FlaggingTrigger>
+        </div>
 
         {/* SKU field with flagging capability */}
-        <FlaggingTrigger
-          tableName="stock_items"
-          recordId={item.stock_item_id}
-          fieldName="sku"
-          currentValue={displayValues.sku}
-          fieldLabel="SKU"
-          contextData={stockItemContextData}
-          className="flaggable-field inline-block rounded-sm px-1 -mx-1"
-        >
-          <div className="text-sm text-muted-foreground">SKU: {displayValues.sku}</div>
-        </FlaggingTrigger>
+        <div>
+          <FlaggingTrigger
+            tableName="stock_items"
+            recordId={item.stock_item_id}
+            fieldName="sku"
+            currentValue={displayValues.sku}
+            fieldLabel="SKU"
+            contextData={stockItemContextData}
+            className="flaggable-field inline-block rounded-sm px-1 -mx-1"
+          >
+            <div className="text-sm text-muted-foreground">SKU: {displayValues.sku}</div>
+          </FlaggingTrigger>
+        </div>
 
         {/* Location field with flagging capability */}
-        <FlaggingTrigger
-          tableName="stock_items"
-          recordId={item.stock_item_id}
-          fieldName="location_in_store_text"
-          currentValue={displayValues.location}
-          fieldLabel="Location"
-          contextData={stockItemContextData}
-          className="flaggable-field inline-block rounded-sm px-1 -mx-1"
-        >
-          <div className="text-sm text-muted-foreground">Location: {displayValues.location}</div>
-        </FlaggingTrigger>
+        <div>
+          <FlaggingTrigger
+            tableName="stock_items"
+            recordId={item.stock_item_id}
+            fieldName="location_in_store_text"
+            currentValue={displayValues.location}
+            fieldLabel="Location"
+            contextData={stockItemContextData}
+            className="flaggable-field inline-block rounded-sm px-1 -mx-1"
+          >
+            <div className="text-sm text-muted-foreground">Location: {displayValues.location}</div>
+          </FlaggingTrigger>
+        </div>
       </div>
 
       {/* Price field with flagging capability */}
@@ -181,17 +187,22 @@ export default function EditionDetailPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6 py-6">
             {/* Back to Inventory Link */}
-            <div className="mb-2">
-                <Button variant="outline" size="sm" onClick={() => router.back()}>
+            <div className="mb-6">
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => router.back()}
+                    className="bg-gradient-to-r from-background/95 to-lavender-50/30 border-neutral-200/60 shadow-elevation-1 hover:shadow-elevation-2 animate-spring backdrop-blur-sm"
+                >
                     <ChevronLeft className="mr-2 h-4 w-4" />
                     Back to Inventory
                 </Button>
             </div>
 
             {/* Hero Section */}
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden border-neutral-200/60 shadow-elevation-2 bg-gradient-to-br from-background/98 to-lavender-50/30 rounded-xl">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                         <CardTitle>Edition Details</CardTitle>
@@ -209,6 +220,7 @@ export default function EditionDetailPage() {
                         variant="outline"
                         size="sm"
                         showLabel={true}
+                        className="bg-gradient-to-r from-background/95 to-coral-50/30 border-neutral-200/60 shadow-elevation-1 hover:shadow-elevation-2 animate-spring"
                     />
                 </CardHeader>
                 <div className="flex flex-col sm:flex-row">
@@ -250,61 +262,69 @@ export default function EditionDetailPage() {
                             <p className="text-lg text-muted-foreground mt-1">{edition.authors || "Unknown"}</p>
                         </FlaggingTrigger>
 
-                        <div className="text-sm text-muted-foreground mt-4 space-y-1">
+                        <div className="text-sm text-muted-foreground mt-4 grid grid-cols-2 gap-2">
                             {/* ISBN-13 with flagging capability */}
-                            <FlaggingTrigger
-                                tableName="editions"
-                                recordId={id}
-                                fieldName="isbn13"
-                                currentValue={edition.isbn13 || "N/A"}
-                                fieldLabel="ISBN-13"
-                                contextData={editionContextData}
-                                className="flaggable-field inline-block rounded-sm px-1 -mx-1"
-                            >
-                                <div>ISBN-13: {edition.isbn13 || "N/A"}</div>
-                            </FlaggingTrigger>
-
-                            {/* ISBN-10 with flagging capability */}
-                            <FlaggingTrigger
-                                tableName="editions"
-                                recordId={id}
-                                fieldName="isbn10"
-                                currentValue={edition.isbn10 || "N/A"}
-                                fieldLabel="ISBN-10"
-                                contextData={editionContextData}
-                                className="flaggable-field inline-block rounded-sm px-1 -mx-1"
-                            >
-                                <div>ISBN-10: {edition.isbn10 || "N/A"}</div>
-                            </FlaggingTrigger>
-
-                            {/* Publisher with flagging capability - Business Expert: Medium priority for collector accuracy */}
-                            {edition.publisher_name && (
+                            <div>
                                 <FlaggingTrigger
                                     tableName="editions"
                                     recordId={id}
-                                    fieldName="publisher_name"
-                                    currentValue={edition.publisher_name}
-                                    fieldLabel="Publisher"
+                                    fieldName="isbn13"
+                                    currentValue={edition.isbn13 || "N/A"}
+                                    fieldLabel="ISBN-13"
                                     contextData={editionContextData}
                                     className="flaggable-field inline-block rounded-sm px-1 -mx-1"
                                 >
-                                    <div>Publisher: {edition.publisher_name}</div>
+                                    <div>ISBN-13: {edition.isbn13 || "N/A"}</div>
                                 </FlaggingTrigger>
+                            </div>
+
+                            {/* ISBN-10 with flagging capability */}
+                            <div>
+                                <FlaggingTrigger
+                                    tableName="editions"
+                                    recordId={id}
+                                    fieldName="isbn10"
+                                    currentValue={edition.isbn10 || "N/A"}
+                                    fieldLabel="ISBN-10"
+                                    contextData={editionContextData}
+                                    className="flaggable-field inline-block rounded-sm px-1 -mx-1"
+                                >
+                                    <div>ISBN-10: {edition.isbn10 || "N/A"}</div>
+                                </FlaggingTrigger>
+                            </div>
+
+                            {/* Publisher with flagging capability - Business Expert: Medium priority for collector accuracy */}
+                            {edition.publisher_name && (
+                                <div>
+                                    <FlaggingTrigger
+                                        tableName="editions"
+                                        recordId={id}
+                                        fieldName="publisher_name"
+                                        currentValue={edition.publisher_name}
+                                        fieldLabel="Publisher"
+                                        contextData={editionContextData}
+                                        className="flaggable-field inline-block rounded-sm px-1 -mx-1"
+                                    >
+                                        <div>Publisher: {edition.publisher_name}</div>
+                                    </FlaggingTrigger>
+                                </div>
                             )}
 
                             {/* Publication Date with flagging capability - Business Expert: Important for collector verification */}
                             {edition.published_date && (
-                                <FlaggingTrigger
-                                    tableName="editions"
-                                    recordId={id}
-                                    fieldName="published_date"
-                                    currentValue={edition.published_date}
-                                    fieldLabel="Publication Date"
-                                    contextData={editionContextData}
-                                    className="flaggable-field inline-block rounded-sm px-1 -mx-1"
-                                >
-                                    <div>Published: {new Date(edition.published_date).getFullYear()}</div>
-                                </FlaggingTrigger>
+                                <div>
+                                    <FlaggingTrigger
+                                        tableName="editions"
+                                        recordId={id}
+                                        fieldName="published_date"
+                                        currentValue={edition.published_date}
+                                        fieldLabel="Publication Date"
+                                        contextData={editionContextData}
+                                        className="flaggable-field inline-block rounded-sm px-1 -mx-1"
+                                    >
+                                        <div>Published: {new Date(edition.published_date).getFullYear()}</div>
+                                    </FlaggingTrigger>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -312,7 +332,7 @@ export default function EditionDetailPage() {
             </Card>
 
             {/* Stock Items Table */}
-            <Card>
+            <Card className="border-neutral-200/60 shadow-elevation-2 bg-gradient-to-br from-background/98 to-mint-50/20 rounded-xl">
                 <CardHeader>
                     <CardTitle>Stock Items</CardTitle>
                     <CardDescription>
@@ -321,7 +341,7 @@ export default function EditionDetailPage() {
                 </CardHeader>
                 <CardContent>
                     {edition.stock_items && edition.stock_items.length > 0 ? (
-                        <div className="space-y-4">
+                        <div className="space-y-lg">
                             {/* REVIEWER FIX: This now correctly uses the memoized component,
                                 preventing the performance bug. */}
                             {edition.stock_items.map((item) => (
@@ -339,7 +359,7 @@ export default function EditionDetailPage() {
             </Card>
 
             {/* Marketplace Card */}
-            <Card>
+            <Card className="border-neutral-200/60 shadow-elevation-2 bg-gradient-to-br from-background/98 to-lavender-50/30 rounded-xl">
                 <CardHeader>
                     <CardTitle>Marketplace Listings</CardTitle>
                 </CardHeader>
@@ -351,23 +371,6 @@ export default function EditionDetailPage() {
                 </CardContent>
             </Card>
 
-            {/* Danger Zone */}
-            <Card className="border-destructive">
-                 <CardHeader>
-                    <CardTitle className="text-destructive">Danger Zone</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <p className="font-medium">Delete this Edition</p>
-                            <p className="text-sm text-muted-foreground">This action is permanent and cannot be undone.</p>
-                        </div>
-                        <Button variant="destructive">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete Edition
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     );
 }

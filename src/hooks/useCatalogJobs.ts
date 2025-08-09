@@ -52,8 +52,11 @@ import {
   isCatalogingJobInProgress,
   isCatalogingJobStatus,
   BookMetadata,
-  CatalogingJobImageUrls
+  CatalogingJobImageUrls,
+  isBookMetadataV2,
+  isCatalogingJobImageUrls
 } from '@/lib/types/jobs';
+import { validateBookMetadataCacheBusted } from '@/lib/types/validation-bypass';
 import { 
   catalogingJobCreateRequestSchema, 
   catalogingJobFinalizeRequestSchema, 
@@ -646,12 +649,53 @@ const fetchCatalogingJobs = async (
     );
   }
 
-  // Apply pagination
+  // Apply pagination with bounds checking
   const from = (filters.page - 1) * filters.limit;
   const to = from + filters.limit - 1;
-  query = query.range(from, to);
+  
+  // First check if we have any data at all to prevent unnecessary range requests
+  const countQuery = supabase
+    .from('cataloging_jobs')
+    .select('*', { count: 'exact', head: true })
+    .eq('organization_id', organizationId);
+  
+  // Apply same filters for count
+  if (filters.status) countQuery.eq('status', filters.status);
+  if (filters.source_type) countQuery.eq('source_type', filters.source_type);
+  if (filters.user_id) countQuery.eq('user_id', filters.user_id);
+  if (filters.date_from) countQuery.gte('created_at', filters.date_from);
+  if (filters.date_to) countQuery.lte('created_at', filters.date_to);
+  if (filters.search_query) {
+    countQuery.or(
+      `extracted_data->title.ilike.%${filters.search_query}%,` +
+      `job_id.ilike.%${filters.search_query}%`
+    );
+  }
+  
+  const { count: totalCount } = await countQuery;
+  
+  // If requesting data beyond available rows, adjust to last valid page
+  if (totalCount !== null && from >= totalCount && totalCount > 0) {
+    const lastPage = Math.ceil(totalCount / filters.limit);
+    const adjustedFrom = (lastPage - 1) * filters.limit;
+    const adjustedTo = adjustedFrom + filters.limit - 1;
+    query = query.range(adjustedFrom, adjustedTo);
+    console.warn(`Pagination adjusted from page ${filters.page} to page ${lastPage} due to data bounds`);
+  } else {
+    query = query.range(from, to);
+  }
 
   const { data: jobs, error: queryError, count } = await query;
+
+  // Debug logging for the actual query
+  console.log('DEBUG - Supabase query result:', {
+    organizationId,
+    filters,
+    jobsCount: jobs?.length || 0,
+    totalCount: count,
+    queryError: queryError?.message,
+    firstJob: jobs?.[0]?.status || 'none'
+  });
 
   if (queryError) {
     throw createErrorHandler('Fetch cataloging jobs')(queryError);
@@ -674,7 +718,22 @@ const fetchCatalogingJobs = async (
       };
 
       if (!isTypedCatalogingJob(typedJob)) {
-        console.warn('Invalid cataloging job structure:', typedJob);
+        console.warn('Invalid cataloging job structure:', {
+          jobId: typedJob.job_id,
+          validationDetails: {
+            hasJobId: !!typedJob.job_id,
+            hasOrgId: !!typedJob.organization_id,
+            hasUserId: !!typedJob.user_id,
+            hasStatus: !!typedJob.status,
+            hasCreatedAt: !!typedJob.created_at,
+            hasUpdatedAt: !!typedJob.updated_at,
+            extractedDataType: typedJob.extracted_data === null ? 'null' : typeof typedJob.extracted_data,
+            imageUrlsType: typedJob.image_urls === null ? 'null' : typeof typedJob.image_urls,
+            extractedDataValid: typedJob.extracted_data === null || validateBookMetadataCacheBusted(typedJob.extracted_data),
+            imageUrlsValid: typedJob.image_urls === null || isCatalogingJobImageUrls(typedJob.image_urls),
+          },
+          fullJob: typedJob
+        });
         return null;
       }
 
@@ -722,10 +781,19 @@ export const useCatalogingJobs = (filters: Partial<CatalogingJobFilters> = {}) =
     [organizationId, validatedFilters]
   );
 
+  // Debug the organization context issue
+  console.log('DEBUG - useCatalogingJobs hook:', {
+    organizationId,
+    hasOrgId: !!organizationId,
+    orgType: typeof organizationId,
+    validatedFilters,
+    queryKeyLength: queryKey.length
+  });
+
   const query = useQuery({
     queryKey,
-    queryFn: () => fetchCatalogingJobs(organizationId || '', validatedFilters),
-    enabled: !!organizationId,
+    queryFn: () => fetchCatalogingJobs(organizationId || '00000000-0000-0000-0000-000000000000', validatedFilters),
+    enabled: true, // TEMPORARY: Always enable to test if org ID is the issue
     staleTime: 30000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount, error) => {
@@ -854,8 +922,22 @@ export const useCatalogingJob = (jobId: string) => {
         };
 
         if (!isTypedCatalogingJob(typedJob)) {
+          console.error('Invalid cataloging job structure detected:', {
+            jobId: typedJob.job_id,
+            missingFields: {
+              hasJobId: !!typedJob.job_id,
+              hasOrgId: !!typedJob.organization_id,
+              hasUserId: !!typedJob.user_id,
+              hasStatus: !!typedJob.status,
+              hasCreatedAt: !!typedJob.created_at,
+              hasUpdatedAt: !!typedJob.updated_at,
+              extractedDataValid: typedJob.extracted_data === null || validateBookMetadataCacheBusted(typedJob.extracted_data),
+              imageUrlsValid: typedJob.image_urls === null || isCatalogingJobImageUrls(typedJob.image_urls),
+            },
+            actualJob: typedJob
+          });
           throw new CatalogingJobError(
-            'Invalid cataloging job structure',
+            'Invalid cataloging job structure - check console for detailed validation errors',
             'INVALID_JOB_STRUCTURE',
             { job: typedJob },
             false
@@ -877,6 +959,77 @@ export const useCatalogingJob = (jobId: string) => {
       return failureCount < 2;
     },
     // ✅ FIX: Added placeholderData to prevent UI layout shifts
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+/**
+ * Permissive cataloging job hook for review page
+ * This bypasses strict validation and allows malformed jobs to be processed at the review level
+ * Used specifically for the review workflow where validation is handled more gracefully
+ */
+export const useCatalogingJobForReview = (jobId: string) => {
+  const { organizationId } = useOrganization();
+
+  return useQuery({
+    queryKey: [...catalogingJobKeys.detail(jobId), 'review-mode'],
+    queryFn: async () => {
+      if (!organizationId || !jobId) {
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from('cataloging_jobs')
+        .select('*')
+        .eq('job_id', jobId)
+        .eq('organization_id', organizationId)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // Record not found
+          return null;
+        }
+        throw createErrorHandler('Fetch cataloging job for review')(error);
+      }
+
+      try {
+        // Parse JSON fields safely without strict validation
+        const extractedData = typeof data.extracted_data === 'string'
+          ? JSON.parse(data.extracted_data)
+          : data.extracted_data;
+        const imageUrls = typeof data.image_urls === 'string'
+          ? JSON.parse(data.image_urls)
+          : data.image_urls;
+
+        // Create a permissive job object that doesn't enforce strict BookMetadata validation
+        const jobForReview = {
+          ...data,
+          extracted_data: extractedData,
+          image_urls: imageUrls,
+        };
+
+        console.log('✅ Review mode: Job loaded permissively for review:', jobId);
+        return jobForReview;
+      } catch (error) {
+        console.warn('Warning: JSON parsing failed in review mode, using raw data:', error);
+        // Even if JSON parsing fails, return the raw data for the review page to handle
+        return {
+          ...data,
+          extracted_data: data.extracted_data,
+          image_urls: data.image_urls,
+        };
+      }
+    },
+    enabled: !!organizationId && !!jobId,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+    retry: (failureCount, error) => {
+      if (error instanceof CatalogingJobError && !error.retryable) {
+        return false;
+      }
+      return failureCount < 2;
+    },
     placeholderData: (previousData) => previousData,
   });
 };

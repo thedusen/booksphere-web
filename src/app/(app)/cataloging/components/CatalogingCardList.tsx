@@ -20,11 +20,7 @@ import {
   MoreHorizontal, 
   Eye, 
   RotateCcw, 
-  Trash2,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle
+  Trash2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +34,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog';
-import { TypedCatalogingJob, getCatalogingJobDisplayStatus } from '@/lib/types/jobs';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { TypedCatalogingJob } from '@/lib/types/jobs';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -46,7 +43,6 @@ interface CatalogingCardListProps {
   jobs: TypedCatalogingJob[];
   selectedJobIds: string[];
   onSelectJob: (jobId: string, selected: boolean) => void;
-  onSelectAll: (selected: boolean) => void;
   onDeleteJob?: (jobId: string) => void;
   onRetryJob?: (jobId: string) => void;
 }
@@ -55,37 +51,21 @@ export function CatalogingCardList({
   jobs,
   selectedJobIds,
   onSelectJob,
-  onSelectAll,
   onDeleteJob,
   onRetryJob,
 }: CatalogingCardListProps) {
-  // Render status badge with icon
-  const StatusBadge = ({ status }: { status: TypedCatalogingJob['status'] }) => {
-    const getStatusIcon = () => {
-      switch (status) {
-        case 'pending':
-          return <Clock className="h-3 w-3" />;
-        case 'processing':
-          return <AlertCircle className="h-3 w-3" />;
-        case 'completed':
-          return <CheckCircle className="h-3 w-3" />;
-        case 'failed':
-          return <XCircle className="h-3 w-3" />;
-        default:
-          return null;
-      }
-    };
-
-    return (
-      <Badge 
-        variant={status === 'completed' ? 'default' : status === 'failed' ? 'destructive' : 'secondary'}
-        className="flex items-center gap-1 text-xs"
-      >
-        {getStatusIcon()}
-        {getCatalogingJobDisplayStatus(status)}
-      </Badge>
-    );
+  // Smart routing function to determine correct link destination
+  const getJobLink = (job: TypedCatalogingJob): string => {
+    if (job.status === 'completed') {
+      // Route ALL completed jobs directly to review (matching mobile app behavior)
+      // This bypasses the problematic job details validation
+      return `/cataloging/jobs/${job.job_id}/review`;
+    }
+    // All other jobs (pending, processing, failed) → Job details page
+    return `/cataloging/jobs/${job.job_id}`;
   };
+
+  // Use the skeumorphic StatusBadge component instead of inline implementation
 
   // Render source type badge - using extraction_source from metadata
   const SourceTypeBadge = ({ extractionSource }: { extractionSource: string | null }) => {
@@ -122,9 +102,9 @@ export function CatalogingCardList({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/cataloging/jobs/${job.job_id}`}>
+          <Link href={getJobLink(job)}>
             <Eye className="h-4 w-4 mr-2" />
-            View Details
+            {job.status === 'completed' ? 'Review & Finalize' : 'View Details'}
           </Link>
         </DropdownMenuItem>
         {job.status === 'failed' && onRetryJob && (
@@ -189,14 +169,14 @@ export function CatalogingCardList({
                     }
                     aria-label={`Select job ${job.extracted_data?.title || job.job_id}`}
                   />
-                  <StatusBadge status={job.status} />
+                  <StatusBadge status={job.status} className="text-xs" />
                 </div>
                 <JobActions job={job} />
               </div>
 
               {/* Main Content */}
               <Link 
-                href={`/cataloging/jobs/${job.job_id}`}
+                href={getJobLink(job)}
                 className="block space-y-2"
               >
                 <div className="space-y-1">
@@ -213,7 +193,7 @@ export function CatalogingCardList({
                 {/* Metadata Row */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || null} />
+                    <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || 'image_capture'} />
                     {job.extracted_data?.isbn13 && (
                       <span className="font-mono">
                         ISBN: {job.extracted_data.isbn13}
@@ -232,6 +212,23 @@ export function CatalogingCardList({
                   <p className="text-xs text-destructive font-medium">
                     Error: {job.error_message}
                   </p>
+                </div>
+              )}
+
+              {/* Mobile Review Button for Completed Jobs */}
+              {job.status === 'completed' && job.extracted_data && (
+                <div className="pt-2 border-t border-border/50">
+                  <Button 
+                    asChild
+                    className="w-full h-10 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-sm"
+                  >
+                    <Link href={`/cataloging/review/${job.extracted_data.isbn13 || job.job_id}`}>
+                      <div className="flex items-center justify-center gap-2">
+                        <Eye className="h-4 w-4" />
+                        <span className="font-medium">Review & Add to Inventory</span>
+                      </div>
+                    </Link>
+                  </Button>
                 </div>
               )}
             </div>

@@ -4,7 +4,7 @@ import React, { useMemo, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, Camera } from "lucide-react";
 import { InventoryListTable } from "../components/inventory/InventoryListTable";
 import { useInventory, type GroupedEditionWithDate } from "@/hooks/useInventory";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -138,12 +138,20 @@ export default function InventoryPage() {
                         <h1 className="text-4xl font-bold tracking-tight gradient-text">Inventory</h1>
                         <p className="text-muted-foreground mt-1">Manage your book collection and stock levels</p>
                     </div>
-                    <Button asChild size="lg" variant="primary" className="shadow-elevation-2 hover-scale-sm">
-                        <Link href="/inventory/new">
-                            <Plus className="mr-2 h-5 w-5" />
-                            Add New Item
-                        </Link>
-                    </Button>
+                    <div className="flex items-center gap-3">
+                        <Button asChild size="lg" variant="outline" className="shadow-elevation-2 hover-scale-sm">
+                            <Link href="/cataloging/scan">
+                                <Camera className="mr-2 h-5 w-5" />
+                                Catalog More Books
+                            </Link>
+                        </Button>
+                        <Button asChild size="lg" variant="primary" className="shadow-elevation-2 hover-scale-sm">
+                            <Link href="/inventory/new">
+                                <Plus className="mr-2 h-5 w-5" />
+                                Add New Item
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
 
             <InventoryDashboardHeader

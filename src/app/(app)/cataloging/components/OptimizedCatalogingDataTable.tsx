@@ -25,12 +25,8 @@
 
 'use client';
 
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import { 
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
   MoreHorizontal, 
   Eye, 
   RotateCcw, 
@@ -48,6 +44,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
@@ -62,7 +59,6 @@ import { cn } from '@/lib/utils';
 import { 
   formatJobDate, 
   SelectionManager, 
-  getStatusBadgeConfig, 
   getSourceTypeLabel,
   performanceMarker,
   memoryTracker,
@@ -101,39 +97,19 @@ interface JobRowProps {
 // ============================================================================
 
 /**
- * Memoized status badge component
+ * Memoized status badge component with color dots
  * Only re-renders when status changes
  */
-const StatusBadge = React.memo(({ status }: { status: TypedCatalogingJob['status'] }) => {
-  const config = getStatusBadgeConfig(status);
-  
-  const IconComponent = useMemo(() => {
-    switch (config.icon) {
-      case 'Clock':
-        return Clock;
-      case 'AlertCircle':
-        return AlertCircle;
-      case 'CheckCircle':
-        return CheckCircle;
-      case 'XCircle':
-        return XCircle;
-      default:
-        return Clock;
-    }
-  }, [config.icon]);
-
+const CatalogingStatusBadge = React.memo(({ status }: { status: TypedCatalogingJob['status'] }) => {
   return (
-    <Badge 
-      variant={config.variant}
-      className="flex items-center gap-1 text-xs"
-    >
-      <IconComponent className="h-3 w-3" />
-      {config.label}
-    </Badge>
+    <StatusBadge 
+      status={status}
+      className="text-xs"
+    />
   );
 });
 
-StatusBadge.displayName = 'StatusBadge';
+CatalogingStatusBadge.displayName = 'CatalogingStatusBadge';
 
 /**
  * Memoized source type badge component
@@ -211,9 +187,9 @@ const JobActions = React.memo(({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/cataloging/jobs/${job.job_id}`}>
+          <Link href={job.status === 'completed' ? `/cataloging/jobs/${job.job_id}/review` : `/cataloging/jobs/${job.job_id}`}>
             <Eye className="h-4 w-4 mr-2" />
-            View Details
+            {job.status === 'completed' ? 'Review & Finalize' : 'View Details'}
           </Link>
         </DropdownMenuItem>
         {job.status === 'failed' && onRetry && (
@@ -266,12 +242,44 @@ const OptimizedJobRow = React.memo(({
     onSelect(job.job_id, checked);
   }, [job.job_id, onSelect]);
 
+  // Handle row click to navigate - completed jobs go directly to review like mobile app
+  const handleRowClick = useCallback((e: React.MouseEvent<HTMLTableRowElement>) => {
+    // Don't navigate if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    const isInteractiveElement = target.closest('button, a, input, [role="button"], [role="checkbox"]');
+    
+    if (!isInteractiveElement) {
+      // Route completed jobs directly to review (like mobile app), others to details
+      const targetUrl = job.status === 'completed' 
+        ? `/cataloging/jobs/${job.job_id}/review`
+        : `/cataloging/jobs/${job.job_id}`;
+      window.location.href = targetUrl;
+    }
+  }, [job.job_id, job.status]);
+
+  // Handle keyboard navigation
+  const handleRowKeyDown = useCallback((e: React.KeyboardEvent<HTMLTableRowElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      // Route completed jobs directly to review (like mobile app), others to details
+      const targetUrl = job.status === 'completed' 
+        ? `/cataloging/jobs/${job.job_id}/review`
+        : `/cataloging/jobs/${job.job_id}`;
+      window.location.href = targetUrl;
+    }
+  }, [job.job_id, job.status]);
+
   return (
     <TableRow 
       className={cn(
-        "cursor-pointer hover:bg-muted/50",
+        "cursor-pointer hover:bg-muted/50 focus-within:bg-muted/50",
         isSelected && "bg-muted/50"
       )}
+      onClick={handleRowClick}
+      onKeyDown={handleRowKeyDown}
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${job.extracted_data?.title || 'cataloging job'}`}
     >
       <TableCell>
         <Checkbox
@@ -282,7 +290,7 @@ const OptimizedJobRow = React.memo(({
       </TableCell>
       <TableCell>
         <Link 
-          href={`/cataloging/jobs/${job.job_id}`}
+          href={job.status === 'completed' ? `/cataloging/jobs/${job.job_id}/review` : `/cataloging/jobs/${job.job_id}`}
           className="block hover:underline"
         >
           <div className="space-y-1">
@@ -303,10 +311,10 @@ const OptimizedJobRow = React.memo(({
         </Link>
       </TableCell>
       <TableCell>
-        <StatusBadge status={job.status} />
+        <CatalogingStatusBadge status={job.status} />
       </TableCell>
       <TableCell>
-        <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || null} />
+        <SourceTypeBadge extractionSource={job.extracted_data?.extraction_source || 'image_capture'} />
       </TableCell>
       <TableCell>
         <DateDisplay dateString={job.created_at} />
@@ -420,20 +428,15 @@ export const OptimizedCatalogingDataTable = React.memo(({
   }, [selectionManager]);
 
   // Memoized event handlers
-  const handleSelectAll = useCallback(() => {
-    onSelectAll(!selectionState.isAllSelected);
-  }, [onSelectAll, selectionState.isAllSelected]);
-
   const handleSelectJob = useCallback((jobId: string, selected: boolean) => {
     onSelectJob(jobId, selected);
   }, [onSelectJob]);
 
   // Performance measurement
-  const startRenderTime = useMemo(() => {
+  useEffect(() => {
     if (enablePerformanceMonitoring) {
       performanceMarker.start('table-render');
     }
-    return Date.now();
   }, [enablePerformanceMonitoring]);
 
   useEffect(() => {
@@ -448,7 +451,7 @@ export const OptimizedCatalogingDataTable = React.memo(({
   // Empty state
   if (jobs.length === 0) {
     return (
-      <div className="border rounded-lg">
+      <div className="border border-neutral-200/60 rounded-xl bg-gradient-to-br from-background/98 to-lavender-50/30 shadow-elevation-2">
         <div className="p-8 text-center text-muted-foreground">
           <p>No cataloging jobs found</p>
         </div>
@@ -457,7 +460,7 @@ export const OptimizedCatalogingDataTable = React.memo(({
   }
 
   return (
-    <div className="border rounded-lg">
+    <div className="border border-neutral-200/60 rounded-xl bg-gradient-to-br from-background/98 to-lavender-50/30 shadow-elevation-2 hover:shadow-elevation-3 animate-spring">
       <Table>
         <TableHeader>
           <TableRow>
@@ -559,7 +562,7 @@ export class CatalogingDataTableErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="border rounded-lg">
+        <div className="border border-neutral-200/60 rounded-xl bg-gradient-to-br from-background/98 to-lavender-50/30 shadow-elevation-2">
           <div className="p-8 text-center">
             <h3 className="text-lg font-semibold text-destructive mb-2">
               Table Error

@@ -10,12 +10,16 @@
 !.yarn/releases
 !.yarn/versions
 
+/mobile-app-reference/
 # testing
 /coverage
 
 # next.js
 /.next/
 /out/
+
+# Buildship exports
+# /buildship/
 
 # production
 /build

@@ -5,7 +5,7 @@ import {
   CatalogingJobImageUrls,
   CatalogingJobCreateRequest,
   CatalogingJobFinalizeRequest,
-  isBookMetadata,
+  isBookMetadataV2,
   isCatalogingJobImageUrls,
   isTypedCatalogingJob,
   isCatalogingJobStatus,
@@ -45,7 +45,7 @@ describe('Cataloging Types and Validation', () => {
         has_dust_jacket: true,
       };
 
-      expect(isBookMetadata(validMetadata)).toBe(true);
+      expect(isBookMetadataV2(validMetadata)).toBe(true);
     });
 
     it('should reject invalid book metadata', () => {
@@ -56,13 +56,13 @@ describe('Cataloging Types and Validation', () => {
         publication_year: 'not a number', // Invalid type
       };
 
-      expect(isBookMetadata(invalidMetadata)).toBe(false);
+      expect(isBookMetadataV2(invalidMetadata)).toBe(false);
     });
 
     it('should reject null or undefined', () => {
-      expect(isBookMetadata(null)).toBe(false);
-      expect(isBookMetadata(undefined)).toBe(false);
-      expect(isBookMetadata('')).toBe(false);
+      expect(isBookMetadataV2(null)).toBe(false);
+      expect(isBookMetadataV2(undefined)).toBe(false);
+      expect(isBookMetadataV2('')).toBe(false);
     });
   });
 
