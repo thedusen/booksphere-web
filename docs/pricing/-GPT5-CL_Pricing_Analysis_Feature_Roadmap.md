@@ -45,6 +45,8 @@ The Pricing Analysis feature enables rapid, data-driven pricing decisions for bo
 - Recency: use 90-day window by default; extend to 180 days with time-decay when samples are scarce
 - Deduplication: collapse relists and identical multi-listings from the same seller; prevent a single seller from dominating comps
 - Exception path: allow explicit bypass of worth-cataloging gates when flagged as antiquarian_candidate or for scarce ISBNs with thin comps
+ - Net margin definition (MVP): net_margin = suggested_price − marketplace_fees(suggested_price) − seller_shipping_cost_if_free − packaging_allowance − COGS; if COGS unknown, use tenant default COGS or bypass margin gate with LOW_CONFIDENCE warning
+ - Tax handling: exclude VAT/sales tax from delivered price for cross-market comparability
 
 ## Core Capabilities
 
@@ -335,6 +337,11 @@ CREATE INDEX idx_market_pricing_data_quality ON market_pricing_data(is_relist, p
 -- Use jsonb_ops for @> containment; switch to jsonb_path_ops later if JSONPath is needed
 CREATE INDEX IF NOT EXISTS idx_market_pricing_data_attributes_gin ON market_pricing_data USING GIN (attributes);
 CREATE INDEX idx_pricing_cache_expires_at ON pricing_cache(expires_at);
+-- Uniqueness to prevent duplicate observations (identity excludes price)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_market_pricing_identity ON market_pricing_data(
+  marketplace_id,
+  COALESCE(external_reference_id, md5((attributes->>'normalized_listing_url')::text))
+);
 
 -- Partitioning deferred for MVP; enable when thresholds are reached with a prepared template
 ```
@@ -595,6 +602,7 @@ enum PricingErrorCode {
 5. **Type Generation & Testing** (30 min)
    - Regenerate TypeScript types
    - Test schema with sample queries
+     - Verify uniqueness constraint on market_pricing_data identity and ON CONFLICT upserts
    - Validate integration points
    - Test source registry update functions
 
@@ -1217,6 +1225,7 @@ BUILD:
 7. Timeout and retry logic with circuit breakers (see Appendix A4 error codes)
 8. Quota tracking and source registry updates (see Appendix A5)
 9. Structured logging with circuit breaker state tracking (see Appendix A3)
+10. Auctions hygiene thresholds: exclude single-bid auctions under $10; downweight single-bid over $10 by ~50%; weight multi-bid/BIN ~1.0
 
 PROVIDE:
 1. Complete Edge Function (/supabase/functions/pricing-connector-ebay/index.ts)
@@ -1258,6 +1267,8 @@ SPECIFIC BUSINESS REQUIREMENTS (FROM DOMAIN ANALYSIS):
 - Recency fallback: 90d default; extend to 180d with decay if sample size is small
 - Seller thresholds: tenant-configurable with whitelists for specialist dealers
 - Dedup/relist handling: collapse identical or relisted items; limit single-seller influence
+ - Sell-through probability (MVP heuristic): if comps_90d ≥ N_min (e.g., 5), p = min(1, recency_weight * (comps_90d / (comps_180d + 1))) adjusted by where suggested_price sits vs trimmed median; else p defaults low (e.g., 0.3) with LOW_CONFIDENCE
+ - Auctions hygiene thresholds: exclude single-bid auctions under $10; downweight single-bid over $10 by ~50%; multi-bid/BIN ~1.0
 
 SELLER QUALITY FILTERING:
 - Apply organization-specific seller_blocklist before price computation
@@ -1444,6 +1455,7 @@ BUILD:
 5. Token optimization for cost efficiency
 6. Audit logging for prompt/response analysis
 7. Quality monitoring for explanation relevance
+ 8. UI affordances and audit flags for exception overrides (e.g., antiquarian_candidate); surface warnings in price_quotes.parameters_used.flags
 
 PROVIDE:
 1. Complete LLM explainer (/supabase/functions/pricing-explainer/index.ts)
