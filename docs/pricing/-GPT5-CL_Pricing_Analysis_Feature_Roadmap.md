@@ -166,6 +166,11 @@ The Pricing Analysis feature enables rapid, data-driven pricing decisions for bo
 - Global observations anonymized beyond edition-level aggregates
 - Cross-tenant sharing limited to aggregated statistics with N≥10 observations per edition
 
+**MVP Ingestion & Idempotency Notes**:
+- Compute idempotency buckets server-side using DB time inside RPCs (avoid client clock skew)
+- market_pricing_data dedup identity: (marketplace_id, COALESCE(external_reference_id, md5(normalized_listing_url)))
+- Use INSERT ... ON CONFLICT on the identity to upsert the latest listing state; do not include price in the identity to preserve genuine price changes
+
 ### Latency Guarantees & Progressive Update Mechanics
 
 - **First Partial**: ≤ 3 seconds (fastest provider + basic computation)
@@ -253,7 +258,7 @@ ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS seller_name TEXT;
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS seller_rating DECIMAL(3,2);
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS seller_location TEXT;
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS listing_url TEXT;
-ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS shipping_price DECIMAL(10,2);
+ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS shipping_price DECIMAL(10,2) CHECK (shipping_price >= 0);
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS is_relist BOOLEAN DEFAULT FALSE;
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS photo_count INTEGER;
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS description_length INTEGER;
@@ -279,7 +284,7 @@ CREATE TABLE sellers (
   marketplace_id UUID REFERENCES marketplaces(marketplace_id),
   seller_platform_id TEXT NOT NULL,
   name TEXT,
-  rating DECIMAL(3,2),
+  rating DECIMAL(5,2) CHECK (rating >= 0 AND rating <= 100),
   location TEXT,
   history_signals JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -321,19 +326,17 @@ INSERT INTO source_registry (source_code, cost_weight, expected_latency_ms, dail
 ```sql
 -- Performance indexes
 CREATE INDEX idx_pricing_jobs_org_created ON pricing_jobs(organization_id, created_at DESC);
+CREATE INDEX idx_pricing_jobs_org_status_started ON pricing_jobs(organization_id, status, started_at DESC);
 CREATE INDEX idx_price_quotes_org_edition ON price_quotes(organization_id, edition_id, created_at DESC);
 CREATE INDEX idx_market_pricing_data_edition ON market_pricing_data(edition_id, price_date DESC);
 CREATE INDEX idx_market_pricing_data_marketplace ON market_pricing_data(marketplace_id, seller_platform_id);
 CREATE INDEX idx_market_pricing_data_quality ON market_pricing_data(is_relist, price_date DESC);
 -- GIN index for extensible attributes bag
-CREATE INDEX IF NOT EXISTS idx_market_pricing_data_attributes_gin ON market_pricing_data USING GIN (attributes jsonb_path_ops);
+-- Use jsonb_ops for @> containment; switch to jsonb_path_ops later if JSONPath is needed
+CREATE INDEX IF NOT EXISTS idx_market_pricing_data_attributes_gin ON market_pricing_data USING GIN (attributes);
+CREATE INDEX idx_pricing_cache_expires_at ON pricing_cache(expires_at);
 
--- Partitioning (monthly for observations, quarterly for quotes)
-CREATE TABLE market_pricing_data_y2025m01 PARTITION OF market_pricing_data
-  FOR VALUES FROM ('2025-01-01') TO ('2025-02-01');
-  
-CREATE TABLE price_quotes_y2025q1 PARTITION OF price_quotes
-  FOR VALUES FROM ('2025-01-01') TO ('2025-04-01');
+-- Partitioning deferred for MVP; enable when thresholds are reached with a prepared template
 ```
 
 ### RLS Policies (Following Booksphere Patterns)
@@ -346,14 +349,21 @@ CREATE TABLE price_quotes_y2025q1 PARTITION OF price_quotes
 ALTER TABLE pricing_jobs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY pricing_jobs_tenant_isolation ON pricing_jobs
   FOR ALL USING (organization_id = (auth.jwt() ->> 'organization_id')::uuid);
+-- Symmetric INSERT WITH CHECK to prevent insert-bypass
+CREATE POLICY pricing_jobs_insert_check ON pricing_jobs
+  FOR INSERT WITH CHECK (organization_id = (auth.jwt() ->> 'organization_id')::uuid);
 
 ALTER TABLE price_quotes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY price_quotes_tenant_isolation ON price_quotes
   FOR ALL USING (organization_id = (auth.jwt() ->> 'organization_id')::uuid);
+CREATE POLICY price_quotes_insert_check ON price_quotes
+  FOR INSERT WITH CHECK (organization_id = (auth.jwt() ->> 'organization_id')::uuid);
 
 ALTER TABLE seller_blocklist ENABLE ROW LEVEL SECURITY;
 CREATE POLICY seller_blocklist_tenant_isolation ON seller_blocklist
   FOR ALL USING (organization_id = (auth.jwt() ->> 'organization_id')::uuid);
+CREATE POLICY seller_blocklist_insert_check ON seller_blocklist
+  FOR INSERT WITH CHECK (organization_id = (auth.jwt() ->> 'organization_id')::uuid);
 
 -- Global platform tables (read access for all, service-role write)
 ALTER TABLE market_pricing_data ENABLE ROW LEVEL SECURITY;
@@ -564,8 +574,9 @@ enum PricingErrorCode {
    - Implement source registry with update_source_registry RPC
    - Create partitioned tables for market_pricing_data (by price_date)
    - Create partitioned tables for price_quotes (by organization_id, created_at)
-   - Adopt an extensible attributes model for `market_pricing_data` via `attributes JSONB` + GIN index; create `attribute_catalog` for canonical keys, allowed values, and synonyms
+   - Adopt an extensible attributes model for `market_pricing_data` via `attributes JSONB` + GIN index (jsonb_ops); create `attribute_catalog` for canonical keys, allowed values, and synonyms
    - Ensure UI/business logic maps nuanced condition and jacket states via EAV attributes on `stock_items`
+   - Defer partitioning for MVP; set activation threshold at ≥ 5–10M rows or ≥ 5GB; prepare a tested migration template to enable partitioning later without downtime
 
 3. **RLS Policy Implementation** (1 hour)
    - Create organization-scoped policies
@@ -576,10 +587,10 @@ enum PricingErrorCode {
 4. **Performance Optimization** (1 hour)
    - Add composite index (edition_id, price_date) for trend queries
    - Add index (organization_id, created_at DESC) for quote retrieval
-   - Set up table partitioning for high-volume data
+   - Set up table partitioning for high-volume data (deferred until threshold reached)
    - Create monitoring views
-   - Configure partition pruning strategies
-   - Add quality/pruning indexes to support deduplication and relist collapsing; add GIN index for `attributes`
+   - Configure partition pruning strategies (deferred)
+   - Add quality/pruning indexes to support deduplication and relist collapsing; ensure GIN index for `attributes` (jsonb_ops)
 
 5. **Type Generation & Testing** (30 min)
    - Regenerate TypeScript types
