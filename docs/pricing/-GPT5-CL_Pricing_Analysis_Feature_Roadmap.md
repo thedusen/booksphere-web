@@ -1030,6 +1030,7 @@ Ensure all code follows Booksphere patterns and includes proper error handling.
  - Delivered price used consistently for comps; robust comp hygiene and dedup/relist handling
  - Tenant-configurable seller quality thresholds and whitelists
  - UI surfaces uncertainty states and actionable next steps (low confidence, suspected reprint/lot, jacket uncertainty)
+ - MVP UX: Quick Assessment (single ISBN input, paste-to-submit, progressive result card) and Detailed Analysis (two-pane layout with filters + comps table), with strong a11y (live regions, focus management)
 
 #### Human Prerequisites Checklist
 - [ ] Amazon SP-API credentials and scopes verified
@@ -1527,6 +1528,8 @@ Ensure explanations enhance rather than delay the pricing experience.
 - [ ] Accessibility requirements (WCAG 2.1 AA) confirmed
 - [ ] Progressive update timing validated with users
 - [ ] Error message taxonomy approved
+ - [ ] Confirm progressive transport (Supabase Realtime vs SSE) and event payload shape
+ - [ ] Confirm tenant-level currency/locale defaults and exposed UI thresholds (seller rating/feedback)
 
 #### Agent Workflow: UI Components Implementation
 
@@ -1552,6 +1555,9 @@ DESIGN:
 1. **User Experience**: Progressive disclosure, intuitive flows, minimal clicks
 2. **Accessibility**: ARIA standards, keyboard navigation, screen reader support
 3. **Component Design**: shadcn/ui system adherence, responsive design
+4. **Quick Assessment**: Single ISBN input (autofocus, Enter submit, '/' to focus), progressive result card (price band, confidence chip, sources, freshness), evidence peek (popover) with CTA
+5. **Detailed Analysis**: Two-pane layout (left filters with Accordion; right results with Tabs for Summary | Comps | Evidence | History), sticky summary header, sortable comps table with row expand and evidence Sheet
+6. **Empty/Error/Stale States**: Friendly empty state with CTAs; chips for degraded sources; staleness badge with Refresh action; never block partials
 
 PROVIDE:
 1. Complete component architecture design
@@ -1580,14 +1586,15 @@ ARCHITECTURAL CONSTRAINTS:
 UX REQUIREMENTS: [Include UX expert specifications]
 
 IMPLEMENT:
-1. QuickAssessment component (3s partial results)
-2. DetailedAnalysis component (full pricing breakdown)
-3. Progressive update rendering system
-4. Provider health indicators
-5. Source exclusion and retry functionality
-6. Freshness and staleness indicators
-7. Comprehensive error boundaries
-8. Loading states and skeleton screens
+1. QuickAssessment component (3s partial results): `Card` with `Input` (autofocus, paste-to-submit), `Button`, live region for progressive price/confidence
+2. DetailedAnalysis component: two-pane layout; filters with `Form` + `Accordion` + `Checkbox`/`Select`; results with `Tabs`, sticky Summary, `Table` with row expansion and `Sheet` for evidence
+3. Progressive update rendering system with `aria-live="polite"`; do not steal focus; announce succinct updates (e.g., "Confidence 0.72")
+4. Provider health indicators (chips/badges); degraded sources shown inline
+5. Source exclusion and retry functionality with sensible defaults and one-click "Apply tenant defaults"
+6. Freshness and staleness indicators with tooltips and Refresh action; delivered price tooltips (item + shipping)
+7. Comprehensive error boundaries and friendly empty states with primary/secondary CTAs
+8. Loading states and skeleton screens; indeterminate `Progress` while orchestrator runs; `sonner` toasts for non-blocking errors
+9. Keyboard interactions: '/' focuses input; Esc clears; focus traps on `Dialog/Sheet`; restore focus on close; `aria-sort` on table headers
 
 PROVIDE:
 1. Complete component implementations
