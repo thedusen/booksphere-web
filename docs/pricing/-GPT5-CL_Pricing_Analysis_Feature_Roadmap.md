@@ -407,96 +407,115 @@ CREATE POLICY attribute_catalog_service_write ON attribute_catalog
   FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
 ```
 
-## API Design
+## API Design (MVP, DX-first)
 
 ### Endpoints
 
-#### POST /api/pricing/jobs
-**Purpose**: Create an async pricing job (idempotent)
+#### POST /api/pricing/v1/jobs
+**Purpose**: Create an async pricing job (idempotent, 5-minute window)
+**Headers**:
+- `Idempotency-Key: <uuid-or-hash>` (required)
+**Response Codes**:
+- 201 Created on first creation; 200 OK on idempotent replay (with `idempotentReplay: true`)
 
 ```typescript
 // Request
 interface CreatePricingJobRequest {
   isbn13: string;
   options?: {
-    allow_expensive_sources?: boolean;
-    excluded_sources?: string[];
     refresh?: boolean;
-    condition_hints?: {
+    excludedSources?: string[];
+    conditionHints?: {
       grade?: 'fine' | 'very_good' | 'good' | 'acceptable' | 'poor';
-      has_dust_jacket?: boolean;
-      is_signed?: boolean;
+      hasDustJacket?: boolean;
+      isSigned?: boolean;
     };
   };
+  engineParamsVersion?: string; // optional evolution hook
 }
 
 // Response
 interface CreatePricingJobResponse {
-  job_id: string;
+  jobId: string;
   status: 'pending' | 'running' | 'partial' | 'completed' | 'failed';
-  idempotency_key: string;
-  cache_hit: boolean;
-  estimated_completion_ms?: number;
+  idempotencyKey: string;
+  idempotentReplay?: boolean;
+  cacheHit?: boolean;
+  estimatedCompletionMs?: number;
+  parametersVersion?: string;
+}
+// Envelope used by all endpoints
+interface ApiResponse<T> {
+  success: boolean;
+  data: T | null;
+  error: {
+    code: string;
+    message: string;
+    httpStatus: number;
+    retryable?: boolean;
+    details?: Record<string, unknown>;
+  } | null;
+  traceId: string;
 }
 ```
 
-#### GET /api/pricing/jobs/{id}
-**Purpose**: Get job status with progressive results
+#### GET /api/pricing/v1/jobs/{jobId}?waitMs=3000
+**Purpose**: Get job status with progressive results; supports optional long-poll via `waitMs`
+**Caching/Conditionals**:
+- Returns `ETag` for representation; clients may send `If-None-Match` to avoid payload when unchanged
+**Headers**:
+- May include `X-Next-Poll-Ms` to guide polling cadence; `Retry-After` optional
 
 ```typescript
 interface GetPricingJobResponse {
-  job_id: string;
+  jobId: string;
   status: 'pending' | 'running' | 'partial' | 'completed' | 'failed';
   progress: {
-    sources_completed: string[];
-    sources_pending: string[];
-    sources_failed: string[];
+    percent?: number;
+    sourcesCompleted: string[];
+    sourcesPending: string[];
+    sourcesFailed: string[];
   };
-  partial_result?: {
-    suggested_price?: number;
-    price_range?: { low: number; high: number };
-    confidence_score?: number;
-    basis_sources: string[];
-    sample_comp_count: number;
-    freshness_timestamp: string;
+  confidence?: number;
+  freshness?: { oldestSourceSeconds: number };
+  providerHealth?: Record<string, 'ok' | 'slow' | 'degraded' | 'down'>;
+  latestPartial?: {
+    low?: string; high?: string; currencyCode: string;
   };
-  final_result?: {
-    quote_id: string;
-    suggested_price: number;
-    price_range: { low: number; high: number };
-    confidence_score: number;
-    worth_cataloging: boolean;
-    expected_sell_speed: 'fast' | 'medium' | 'slow';
-    rationale: string;
+  finalResult?: {
+    quoteId: string;
+    suggestedPrice: string;
+    priceRange: { low: string; high: string };
+    confidenceScore: number;
+    worthCataloging: boolean;
+    expectedSellSpeed: 'fast' | 'medium' | 'slow';
+    rationaleId?: string;
+    parametersVersion: string;
+    freshnessTimestamp: string;
     warnings?: string[];
-  };
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
   };
 }
 ```
 
-#### GET /api/pricing/quotes/{id}
+#### GET /api/pricing/v1/quotes/{quoteId}
 **Purpose**: Get final pricing quote with full details
 
 ```typescript
 interface GetPricingQuoteResponse {
-  quote_id: string;
-  edition_id: string;
-  suggested_price: number;
-  price_range: { low: number; high: number };
-  confidence_score: number;
-  currency: string;
-  worth_cataloging: boolean;
+  quoteId: string;
+  editionId: string;
+  suggestedPrice: string;
+  priceRange: { low: string; high: string };
+  confidenceScore: number;
+  currencyCode: string;
+  worthCataloging: boolean;
   comparables: {
     source: string;
     count: number;
-    median_price: number;
-    date_range: { from: string; to: string };
+    medianPrice: string;
+    dateRange: { from: string; to: string };
     samples: Array<{
-      price: number;
+      price: string;
       condition: string;
       seller: string;
       date: string;
@@ -504,20 +523,23 @@ interface GetPricingQuoteResponse {
     }>;
   }[];
   adjustments: {
-    condition_modifier?: number;
-    binding_modifier?: number;
-    signed_premium?: number;
+    conditionModifier?: number;
+    bindingModifier?: number;
+    signedPremium?: number;
   };
   rationale: {
     summary: string;
-    key_factors: string[];
-    confidence_drivers: string[];
+    keyFactors: string[];
+    confidenceDrivers: string[];
   };
   metadata: {
-    parameters_version: string;
-    created_at: string;
-    freshness_timestamp: string;
-    cache_ttl_seconds: number;
+    parametersVersion: string;
+    createdAt: string;
+    freshnessTimestamp: string;
+    cacheTtlSeconds: number;
+    cacheHit?: boolean;
+    cacheLayer?: 'quote' | 'provider' | 'isbnBase';
+    stalenessSeconds?: number;
   };
 }
 ```
@@ -541,7 +563,35 @@ enum PricingErrorCode {
   STALE_CACHE = 'STALE_CACHE',
   LOW_CONFIDENCE = 'LOW_CONFIDENCE'
 }
+
+// Envelope for errors
+type ErrorEnvelope = ApiResponse<null>;
+// Example
+const exampleError: ErrorEnvelope = {
+  success: false,
+  data: null,
+  error: {
+    code: 'PROVIDER_TIMEOUT',
+    message: 'Amazon SP-API timed out',
+    httpStatus: 504,
+    retryable: true,
+    details: { provider: 'amazon', timeoutMs: 3000 }
+  },
+  traceId: '...' 
+}
 ```
+
+### Multi-tenancy & Security (API)
+- Derive organization_id from JWT server-side; never accept it from client payloads
+- All tenant-scoped operations are constrained server-side; global raw observations are not exposed via public endpoints
+
+### Caching, Polling, and Evolution
+- Use `options.refresh` to bypass caches; otherwise respect layered caches
+- Support optional long-poll via `waitMs`; return `ETag` and `X-Next-Poll-Ms` guidance; clients may use `If-None-Match`
+- Include `parametersVersion`/`engineParamsVersion` to lock behavior for reproducibility as the engine evolves
+
+### JSON Conventions
+- CamelCase for JSON; decimals returned as strings with `currencyCode`
 
 ## Implementation Phases - Agent-Driven Workflows
 
