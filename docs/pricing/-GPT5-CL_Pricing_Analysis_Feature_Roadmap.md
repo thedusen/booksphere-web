@@ -172,6 +172,7 @@ The Pricing Analysis feature enables rapid, data-driven pricing decisions for bo
 - Compute idempotency buckets server-side using DB time inside RPCs (avoid client clock skew)
 - market_pricing_data dedup identity: (marketplace_id, COALESCE(external_reference_id, md5(normalized_listing_url)))
 - Use INSERT ... ON CONFLICT on the identity to upsert the latest listing state; do not include price in the identity to preserve genuine price changes
+ - Ensure connectors populate `attributes.normalized_listing_url` (lowercased, stripped of tracking params) derived from `listing_url`
 
 ### Latency Guarantees & Progressive Update Mechanics
 
@@ -227,10 +228,10 @@ CREATE TABLE price_quotes (
   job_id UUID REFERENCES pricing_jobs(id) ON DELETE CASCADE,
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   edition_id UUID REFERENCES editions(edition_id),
-  suggested_price DECIMAL(10,2) NOT NULL,
-  low_price DECIMAL(10,2) NOT NULL,
-  high_price DECIMAL(10,2) NOT NULL,
-  currency_code TEXT DEFAULT 'USD',
+  suggested_price DECIMAL(10,2) NOT NULL CHECK (suggested_price >= 0),
+  low_price DECIMAL(10,2) NOT NULL CHECK (low_price >= 0),
+  high_price DECIMAL(10,2) NOT NULL CHECK (high_price >= 0),
+  currency_code TEXT DEFAULT 'USD' CHECK (currency_code ~ '^[A-Z]{3}$'),
   confidence_score DECIMAL(3,2) CHECK (confidence_score >= 0 AND confidence_score <= 1),
   parameters_used JSONB NOT NULL, -- weights, thresholds, version
   evidence_refs UUID[], -- references to market_pricing_data
@@ -257,7 +258,7 @@ CREATE TABLE seller_blocklist (
 -- Extend existing market_pricing_data table for pricing feature
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS seller_platform_id TEXT;
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS seller_name TEXT;
-ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS seller_rating DECIMAL(3,2);
+ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS seller_rating DECIMAL(5,2) CHECK (seller_rating >= 0 AND seller_rating <= 100);
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS seller_location TEXT;
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS listing_url TEXT;
 ALTER TABLE market_pricing_data ADD COLUMN IF NOT EXISTS shipping_price DECIMAL(10,2) CHECK (shipping_price >= 0);
@@ -372,18 +373,18 @@ CREATE POLICY seller_blocklist_tenant_isolation ON seller_blocklist
 CREATE POLICY seller_blocklist_insert_check ON seller_blocklist
   FOR INSERT WITH CHECK (organization_id = (auth.jwt() ->> 'organization_id')::uuid);
 
--- Global platform tables (read access for all, service-role write)
+-- Global platform tables (service-role only for raw reads/writes). Public access must use sanitized views.
 ALTER TABLE market_pricing_data ENABLE ROW LEVEL SECURITY;
-CREATE POLICY market_pricing_data_read ON market_pricing_data
-  FOR SELECT USING (true);
+CREATE POLICY market_pricing_data_service_read ON market_pricing_data
+  FOR SELECT USING (auth.jwt() ->> 'role' = 'service_role');
 CREATE POLICY market_pricing_data_service_write ON market_pricing_data
   FOR INSERT WITH CHECK (auth.jwt() ->> 'role' = 'service_role');
 CREATE POLICY market_pricing_data_service_update ON market_pricing_data
   FOR UPDATE USING (auth.jwt() ->> 'role' = 'service_role');
 
 ALTER TABLE sellers ENABLE ROW LEVEL SECURITY;
-CREATE POLICY sellers_read ON sellers
-  FOR SELECT USING (true);
+CREATE POLICY sellers_service_read ON sellers
+  FOR SELECT USING (auth.jwt() ->> 'role' = 'service_role');
 CREATE POLICY sellers_service_write ON sellers
   FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
 
@@ -464,7 +465,7 @@ interface ApiResponse<T> {
 **Caching/Conditionals**:
 - Returns `ETag` for representation; clients may send `If-None-Match` to avoid payload when unchanged
 **Headers**:
-- May include `X-Next-Poll-Ms` to guide polling cadence; `Retry-After` optional
+- May include `X-Next-Poll-Ms` to guide polling cadence; `Retry-After` optional; clients should backoff 500–1500ms with jitter
 
 ```typescript
 interface GetPricingJobResponse {
@@ -1061,6 +1062,7 @@ Ensure all code follows Booksphere patterns and includes proper error handling.
    - Compute delivered price when shipping is present
    - Filter reprints, PODs, international/teacher/book club editions when mismatched
    - Exclude low-quality sellers per tenant-configured thresholds/whitelists
+   - Populate `attributes.normalized_listing_url` (lowercased, canonicalized URL with tracking params removed) derived from `listing_url`
 
 4. **Quality Filtering** (1 hour)
    - Implement seller rating/feedback thresholds (tenant-configurable + whitelists)
@@ -1174,6 +1176,7 @@ IMPLEMENT:
 7. Rate limiting and circuit breaker implementation (update source registry)
 8. Structured logging with trace_id propagation (see Appendix A3)
 9. Job state machine transitions (see Appendix A1)
+10. Set `attributes.normalized_listing_url` from `listing_url` (canonical form used for dedup identity)
 
 Provide production-ready code with proper TypeScript types and error handling.
 ```
@@ -1277,6 +1280,7 @@ BUILD:
 8. Quota tracking and source registry updates (see Appendix A5)
 9. Structured logging with circuit breaker state tracking (see Appendix A3)
 10. Auctions hygiene thresholds: exclude single-bid auctions under $10; downweight single-bid over $10 by ~50%; weight multi-bid/BIN ~1.0
+11. Populate `attributes.normalized_listing_url` from `listing_url` (canonicalized; used for dedup identity)
 
 PROVIDE:
 1. Complete Edge Function (/supabase/functions/pricing-connector-ebay/index.ts)
